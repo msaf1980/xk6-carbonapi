@@ -37,27 +37,25 @@ func newRender(baseURL string, targets [][]string) *Render {
 	return &Render{baseURL: baseURL, targets: targets, intervals: make(map[string]*RenderState)}
 }
 
-func (r *Render) AddIntervalGroup(group string, duration, offset int64) *Render {
-	r.intervals[group] = &RenderState{duration: duration, offset: offset}
-
-	return r
+func (m *Module) RenderAddIntervalGroup(group string, duration, offset int64) {
+	m.q.render.intervals[group] = &RenderState{duration: duration, offset: offset}
 }
 
-func (r *Render) NextGetJSON(group string) (string, error) {
-	s, ok := r.intervals[group]
+func (m *Module) RenderNextGetJSON(group string, offset int64) (string, error) {
+	s, ok := m.q.render.intervals[group]
 	if !ok {
-		return "", fmt.Errorf("group not found: %s in %+v", group, r.intervals)
+		return "", fmt.Errorf("group not found: %s in %+v", group, m.q.render.intervals)
 	}
 
 	until := rand.Int63n(randInterval)/10 + s.offset // random in day range with offset
 	from := until + s.duration
 
-	pos := int64((atomic.AddUint64(&s.pos, 1) - 1) % uint64(len(r.targets)))
-	targets := r.targets[pos]
+	pos := int64((atomic.AddUint64(&s.pos, 1) + uint64(offset) - 1) % uint64(len(m.q.render.targets)))
+	targets := m.q.render.targets[pos]
 
 	var sb stringutils.Builder
 	sb.Grow(512)
-	sb.WriteString(r.baseURL)
+	sb.WriteString(m.q.render.baseURL)
 	sb.WriteString("/render/?format=json&from=-")
 	sb.WriteInt(from, 10)
 	if until > 0 {

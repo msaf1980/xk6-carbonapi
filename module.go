@@ -11,11 +11,17 @@ func init() {
 	modules.Register("k6/x/carbonapi", New())
 }
 
-type Module struct{}
+type Module struct {
+	q *CarbonapiQuery
+}
 
-// func (m *Module) XRender(max int64) *Increment {
-// 	return newIncrement(max)
-// }
+func (m *Module) LoadQueries(path, baseURL string) (*CarbonapiQuery, error) {
+	var err error
+
+	m.q, err = carbonapiQuery(path, baseURL)
+
+	return m.q, err
+}
 
 func New() *Module {
 	return &Module{}

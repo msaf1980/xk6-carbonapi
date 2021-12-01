@@ -9,15 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestModule_XCarbonapiQuery(t *testing.T) {
+func TestModule_carbonapiQuery(t *testing.T) {
 	baseURL := "http://127.0.0.1:8080"
-
-	m := New()
 
 	_, filename, _, _ := runtime.Caller(0)
 	testFile := path.Join(path.Dir(filename), "tests", "carbonapi.txt")
 
-	q, err := m.XCarbonapiQuery(testFile, baseURL)
+	q, err := carbonapiQuery(testFile, baseURL)
 	require.NoError(t, err)
 
 	render := q.Render()

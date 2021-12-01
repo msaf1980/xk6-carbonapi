@@ -18,7 +18,7 @@ func (b *CarbonapiQuery) Render() *Render {
 	return b.render
 }
 
-func (m *Module) XCarbonapiQuery(path string, baseURL string) (*CarbonapiQuery, error) {
+func carbonapiQuery(path string, baseURL string) (*CarbonapiQuery, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,8 @@
 version: "3"
 
 env:
-  K6_VERSION: v0.35.0
+  XK6_GETENV_VERSION: v0.0.4
+#  K6_VERSION: v0.35.0
 
 silent: true
 
@@ -24,7 +25,7 @@ tasks:
     generates:
       - k6
     cmds:
-      - xk6 build --with github.com/msaf1980/xk6-carbonapi=$(pwd) --with github.com/msaf1980/xk6-getenv@v0.0.3
+      - XK6_K6_REPO=~/go/src/github.com/grafana/k6 xk6 build --with github.com/msaf1980/xk6-carbonapi=$(pwd) --with github.com/msaf1980/xk6-getenv@${XK6_GETENV_VERSION}
 
   test:
     deps: [build]

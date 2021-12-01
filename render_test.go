@@ -8,21 +8,23 @@ import (
 	"testing"
 )
 
-func TestRender_NextGetJSON(t *testing.T) {
+func TestRender_RenderNextGetJSON(t *testing.T) {
 	randInterval = 1 // avoid flapping random from/until
 
 	baseURL := "http://127.0.0.1:8080"
 
-	r := newRender(baseURL,
+	m := New()
+	m.q = &CarbonapiQuery{}
+	m.q.render = newRender(baseURL,
 		[][]string{
 			{"test1.*"},
 			{"test2.*", "test3.*.test4"},
 		},
 	)
 
-	r.AddIntervalGroup("1 Hour (0)", 3600, 0)
-	r.AddIntervalGroup("1 Hour (7d)", 3600, 3600*24*7)
-	r.AddIntervalGroup("2 Hours (7d)", 3600*2, 3600*24*7)
+	m.RenderAddIntervalGroup("1 Hour (0)", 3600, 0)
+	m.RenderAddIntervalGroup("1 Hour (7d)", 3600, 3600*24*7)
+	m.RenderAddIntervalGroup("2 Hours (7d)", 3600*2, 3600*24*7)
 
 	tests := []struct {
 		name string
@@ -36,7 +38,7 @@ func TestRender_NextGetJSON(t *testing.T) {
 	}
 	for n, tt := range tests {
 		t.Run(fmt.Sprintf("(%d) %s", n, tt.name), func(t *testing.T) {
-			got, err := r.NextGetJSON(tt.name)
+			got, err := m.RenderNextGetJSON(tt.name, 0)
 			if err != nil {
 				t.Errorf("Render.NextGetJSON(\"%s\") got error '%v'", tt.name, err)
 			} else if got != tt.want {
