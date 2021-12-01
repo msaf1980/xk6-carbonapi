@@ -20,20 +20,177 @@ let USERS_30D_0 = getenv.getInt(`${__ENV.USERS_30D_0}`, 0);
 let USERS_90D_0 = getenv.getInt(`${__ENV.USERS_90D_0}`, 0);
 let USERS_365D_0 = getenv.getInt(`${__ENV.USERS_365D_0}`, 0);
 
+let scenarios = {};
+
+if (USERS_1H_0 > 0) {
+    scenarios["render_1h_offset_0"] = {
+        executor: 'constant-vus',
+        exec: 'api_render',
+        vus: USERS_1H_0,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_1h_offset_0' },
+    }
+}
+
+if (USERS_1H_7D > 0) {
+    scenarios["render_1h_offset_7d"] = {
+        executor: 'constant-vus',
+        exec: 'api_render',
+        vus: USERS_1H_7D,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_1h_offset_7d' },
+    }
+}
+
+if (USERS_1D_0 > 0) {
+    scenarios["render_1d_offset_0"] = {
+        executor: 'constant-vus',
+        exec: 'api_render',
+        vus: USERS_1D_0,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_1d_offset_0' },
+    }
+}
+
+if (USERS_1D_7D > 0) {
+    scenarios["render_1d_offset_7d"] = {
+        executor: 'constant-vus',
+        exec: 'api_render',
+        vus: USERS_1D_7D,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_1d_offset_7d' },
+    }
+}
+
+if (USERS_7D_0 > 0) {
+    scenarios["render_7d_offset_0"] = {
+        executor: 'constant-vus',
+        exec: 'api_render',
+        vus: USERS_7D_0,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_7d_offset_0' },
+    }
+}
+
+if (USERS_7D_10M > 0) {
+    scenarios["render_7d_offset_10m"] = {
+        executor: 'constant-vus',
+        exec: 'api_render',
+        vus: USERS_7D_10M,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_7d_offset_10m' },
+    }
+}
+
+if (USERS_30D_0 > 0) {
+    scenarios["render_30d_offset_0"] = {
+        executor: 'constant-vus',
+        exec: 'api_render',
+        vus: USERS_30D_0,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_30d_offset_0' },
+    }
+}
+
+if (USERS_90D_0 > 0) {
+    scenarios["render_90d_offset_0"] = {
+        executor: 'constant-vus',
+        exec: 'api_render',
+        vus: USERS_90D_0,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_90d_offset_0' },
+    }
+}
+
+if (USERS_365D_0 > 0) {
+    scenarios["render_365d_offset_0"] = {
+        executor: 'constant-vus',
+        exec: 'api_render',
+        vus: USERS_365D_0,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_365d_offset_0' },
+    }
+}
+
 export const options = {
     thresholds: {
         'http_req_failed{name:render_1h_offset_0}': [
             {
                 threshold: 'rate<0.01', // http errors should be less than 1%
                 abortOnFail: true,
-                delayAbortEval: '10s',
+                delayAbortEval: '30s',
             },
         ],
         'http_req_duration{name:render_1h_offset_0}': [
             {
                 threshold: 'p(95)<1000', // 95% of requests should be below 1000ms
                 abortOnFail: true,
-                delayAbortEval: '10s',
+                delayAbortEval: '30s',
+            },
+        ],
+        'http_req_duration{name:render_1h_offset_7d}': [
+            {
+                threshold: 'p(95)<1000', // 95% of requests should be below 1000ms
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'http_req_duration{name:render_1d_offset_0}': [
+            {
+                threshold: 'p(95)<2000', // 95% of requests should be below 1000ms
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'http_req_duration{name:render_1d_offset_7d}': [
+            {
+                threshold: 'p(95)<2000', // 95% of requests should be below 1000ms
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'http_req_duration{name:render_7d_offset_0}': [
+            {
+                threshold: 'p(95)<5000', // 95% of requests should be below 1000ms
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'http_req_duration{name:render_7d_offset_10m}': [
+            {
+                threshold: 'p(95)<5000', // 95% of requests should be below 1000ms
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'http_req_duration{name:render_30d_offset_0}': [
+            {
+                threshold: 'p(95)<10000', // 95% of requests should be below 1000ms
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'http_req_duration{name:render_90d_offset_0}': [
+            {
+                threshold: 'p(95)<15000', // 95% of requests should be below 1000ms
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'http_req_duration{name:render_365d_offset_0}': [
+            {
+                threshold: 'p(95)<20000', // 95% of requests should be below 1000ms
+                abortOnFail: true,
+                delayAbortEval: '30s',
             },
         ],
         'http_req_connecting': [
@@ -44,80 +201,7 @@ export const options = {
             },
         ],
     },
-    scenarios: {
-        render_1h_offset_0: {
-            executor: 'constant-vus',
-            exec: 'api_render',
-            vus: USERS_1H_0,
-            duration: DURATION,
-            gracefulStop: '10s',
-            env: { GROUP: 'render_1h_offset_0' },
-        },
-        render_1h_offset_7d: {
-            executor: 'constant-vus',
-            exec: 'api_render',
-            vus: USERS_1H_7D,
-            duration: DURATION,
-            gracefulStop: '10s',
-            env: { GROUP: 'render_1h_offset_7d' },
-        },
-        render_1d_offset_0: {
-            executor: 'constant-vus',
-            exec: 'api_render',
-            vus: USERS_1D_0,
-            duration: DURATION,
-            gracefulStop: '10s',
-            env: { GROUP: 'render_1d_offset_0' },
-        },
-        render_1d_offset_7d: {
-            executor: 'constant-vus',
-            exec: 'api_render',
-            vus: USERS_1D_7D,
-            duration: DURATION,
-            gracefulStop: '10s',
-            env: { GROUP: 'render_1d_offset_7d' },
-        },
-        render_7d_offset_0: {
-            executor: 'constant-vus',
-            exec: 'api_render',
-            vus: USERS_7D_0,
-            duration: DURATION,
-            gracefulStop: '10s',
-            env: { GROUP: 'render_7d_offset_0' },
-        },
-        render_7d_offset_10m: {
-            executor: 'constant-vus',
-            exec: 'api_render',
-            vus: USERS_7D_10M,
-            duration: DURATION,
-            gracefulStop: '10s',
-            env: { GROUP: 'render_7d_offset_10m' },
-        },
-        render_30d_offset_0: {
-            executor: 'constant-vus',
-            exec: 'api_render',
-            vus: USERS_30D_0,
-            duration: DURATION,
-            gracefulStop: '10s',
-            env: { GROUP: 'render_30d_offset_0' },
-        },
-        render_90d_offset_0: {
-            executor: 'constant-vus',
-            exec: 'api_render',
-            vus: USERS_90D_0,
-            duration: DURATION,
-            gracefulStop: '10s',
-            env: { GROUP: 'render_90d_offset_0' },
-        },
-        render_365d_offset_0: {
-            executor: 'constant-vus',
-            exec: 'api_render',
-            vus: USERS_365D_0,
-            duration: DURATION,
-            gracefulStop: '10s',
-            env: { GROUP: 'render_365d_offset_0' },
-        },
-    },
+    scenarios: scenarios,
 };
 
 export function setup() {
@@ -137,7 +221,7 @@ export function api_render() {
     let group = __ENV.GROUP
     let url = carbonapi.renderNextGetJSON(group)
 
-    console.log("GROUP="+group, "VU="+__VU, "ITER="+__ITER, "URL="+url)
+    // console.log("GROUP="+group, "VU="+__VU, "ITER="+__ITER, "URL="+url)
 
     let resp = http.get(url, {
         tags: { name: group },

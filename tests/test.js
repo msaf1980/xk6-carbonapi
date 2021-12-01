@@ -12,5 +12,5 @@ export function setup() {
 }
 
 export default function() {
-    console.log("vu=" + __VU, "iter="+__ITER, carbonapi.renderNextGetJSON("default", 0));
+    console.log("iter="+__ITER, "vu=" + __VU, carbonapi.renderNextGetJSON("default", 0));
 }
