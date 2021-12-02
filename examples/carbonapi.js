@@ -4,14 +4,16 @@ import { check, sleep } from 'k6';
 import carbonapi from "k6/x/carbonapi";
 import getenv from "k6/x/getenv";
 
+import { randomInt, getIntOrdered2 } from './utils.js'
+
 let ADDR = getenv.getString(`${__ENV.ADDR}`, "http://127.0.0.1:8888");
 let QUERIES = getenv.getString(`${__ENV.QUERIES}`, "carbonapi.txt");
 
-let DELAY = getenv.getIntRand(`${__ENV.DELAY}`, 10); // 1 request per 10s for user
+let DELAY = getIntOrdered2(`${__ENV.DELAY}`, 10); // 1 request per 10s for user
 let DURATION = getenv.getString(`${__ENV.DURATION}`, "60s"); // test duration
 
 let USERS_1H_0 = getenv.getInt(`${__ENV.USERS_1H_0}`, 10);
-let USERS_1H_7D = getenv.getInt(`${__ENV.USERS_1H_7D}`, 1);
+let USERS_1H_7D = getenv.getInt(`${__ENV.USERS_1H_7D}`, 0);
 let USERS_1D_0 = getenv.getInt(`${__ENV.USERS_1D_0}`, 0);
 let USERS_1D_7D = getenv.getInt(`${__ENV.USERS_1D_7D}`, 0);
 let USERS_7D_0 = getenv.getInt(`${__ENV.USERS_7D_0}`, 0);
@@ -231,6 +233,6 @@ export function api_render() {
     });
 
     if (DELAY > 0) {
-        sleep(DELAY);
+        sleep(randomInt(DELAY[0], DELAY[1]));
     }
 }

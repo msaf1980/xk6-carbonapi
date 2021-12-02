@@ -32,3 +32,27 @@ Then, install [xk6](https://github.com/grafana/xk6) and build your custom k6 bin
 
 # example
 
+Tune with variables
+```
+ADDR          : "http://127.0.0.1:8888"
+QUERIES       : "carbonapi.txt"           # Test dataset
+
+DELAY         : 10     # 1 request per 10s for user, can used random value in range, pass like MIN:MAX
+DURATION      : "60s"  # test duration
+
+USERS_1H_0    : 10   # Number of users with queries in 1 hour range
+USERS_1H_7D   : 0    # Number of users with queries in 1 hour range with from offset wth 7 days (disabled by default)
+USERS_1D_0    : 0    # Number of users with queries in 1 day range (disabled by default)
+USERS_1D_7D   : 0    # Number of users with queries in 1 day range with from offset wth 7 days (disabled by default)
+USERS_7D_0    : 0    # Number of users with queries in 7 days range (disabled by default)
+USERS_7D_10M  : 0    # Number of users with queries in 7 days range with from offset wth 10 minutes (disabled by default)
+USERS_30D_0   : 0    # Number of users with queries in 30 days range (disabled by default)
+USERS_90D_0   : 0    # Number of users with queries in 90 days range (disabled by default)
+USERS_365D_0  : 0    # Number of users with queries in 365 days range (disabled by default)
+```
+
+ ```shell
+$ K6_STATSD_ADDR='graphite-relay:8125' K6_STATSD_TAG_APPEND='name' K6_STATSD_NAMESPACE="DevOps.loadtest.k6.graphite.staging." ./k6 run -e ADDR="http://localhost:8889" -e USERS_7D_0=1 --out statsd examples/carbonapi.js
+  ```
+
+
