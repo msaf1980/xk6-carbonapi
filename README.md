@@ -52,7 +52,7 @@ USERS_365D_0  : 0    # Number of users with queries in 365 days range (disabled 
 ```
 
  ```shell
-$ K6_STATSD_ADDR='graphite-relay:8125' K6_STATSD_TAG_APPEND='name' K6_STATSD_NAMESPACE="DevOps.loadtest.k6.graphite.staging." ./k6 run -e ADDR="http://localhost:8889" -e USERS_7D_0=1 --out statsd examples/carbonapi.js
+$ K6_STATSD_ADDR='graphite-relay:8125' K6_STATSD_BUFFER_SIZE=1000 K6_STATSD_TAG_APPEND='label' K6_STATSD_NAMESPACE="DevOps.loadtest.k6.graphite.staging." ./k6 run -e ADDR="http://localhost:8889" -e USERS_7D_0=100 --out statsd examples/carbonapi.js
   ```
 
 

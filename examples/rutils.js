@@ -8,7 +8,7 @@ export function randomInt(min, max) { // min and max included
 export function splitString2(content, delim) {
     let start = content.indexOf(delim);
     if (start === -1) {
-        return [content, ""];
+        return [content, content];
     }
 
     let a = content.substring(0, start)
@@ -19,7 +19,7 @@ export function splitString2(content, delim) {
 
 export function splitIntOrdered2(content, defaultValue, delim = ':') {
     if (content == null || content.length == 0) {
-        return [defaultValue, defaultValue];
+        content = defaultValue;
     }
 
     let s = splitString2(content, delim)
@@ -35,19 +35,6 @@ export function splitIntOrdered2(content, defaultValue, delim = ':') {
     }
 
     return [min, max]
-}
-
-export function findBetween(content, left, right) {
-    let start = content.indexOf(left);
-    if (start === -1) {
-        return '';
-    }
-    start += left.length;
-    const end = content.indexOf(right, start);
-    if (end === -1) {
-        return '';
-    }
-    return content.substring(start, end);
 }
 
 export function getString(content, defaultValue) {
@@ -67,7 +54,7 @@ export function getInt(content, defaultValue) {
 
 export function getIntOrdered2(content, defaultValue, delim = ':') {
     if (content == null || content.length == 0 || content == "undefined") {
-        return [defaultValue, defaultValue];
+        content = defaultValue
     }
 
     return splitIntOrdered2(content, defaultValue, delim)

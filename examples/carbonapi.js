@@ -1,15 +1,17 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
+import { Counter } from 'k6/metrics';
+
 import carbonapi from "k6/x/carbonapi";
 import getenv from "k6/x/getenv";
 
-import { randomInt, getIntOrdered2 } from './utils.js'
+import { randomInt, getIntOrdered2 } from './rutils.js'
 
 let ADDR = getenv.getString(`${__ENV.ADDR}`, "http://127.0.0.1:8888");
 let QUERIES = getenv.getString(`${__ENV.QUERIES}`, "carbonapi.txt");
 
-let DELAY = getIntOrdered2(`${__ENV.DELAY}`, 10); // 1 request per 10s for user
+let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8:12"); // 1 request per random 8:12s for user
 let DURATION = getenv.getString(`${__ENV.DURATION}`, "60s"); // test duration
 
 let USERS_1H_0 = getenv.getInt(`${__ENV.USERS_1H_0}`, 10);
@@ -125,70 +127,70 @@ if (USERS_365D_0 > 0) {
 
 export const options = {
     thresholds: {
-        'http_req_failed{name:render_1h_offset_0}': [
+        'http_req_failed{label:render_1h_offset_0}': [
             {
                 threshold: 'rate<0.01', // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_duration{name:render_1h_offset_0}': [
+        'http_req_duration{label:render_1h_offset_0}': [
             {
-                threshold: 'p(95)<1000', // 95% of requests should be below 1000ms
+                threshold: 'p(95)<3000', // 95% of requests should be below 1000ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_duration{name:render_1h_offset_7d}': [
+        'http_req_duration{label:render_1h_offset_7d}': [
             {
-                threshold: 'p(95)<1000', // 95% of requests should be below 1000ms
+                threshold: 'p(95)<3000', // 95% of requests should be below 1000ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_duration{name:render_1d_offset_0}': [
-            {
-                threshold: 'p(95)<2000', // 95% of requests should be below 1000ms
-                abortOnFail: true,
-                delayAbortEval: '30s',
-            },
-        ],
-        'http_req_duration{name:render_1d_offset_7d}': [
-            {
-                threshold: 'p(95)<2000', // 95% of requests should be below 1000ms
-                abortOnFail: true,
-                delayAbortEval: '30s',
-            },
-        ],
-        'http_req_duration{name:render_7d_offset_0}': [
+        'http_req_duration{label:render_1d_offset_0}': [
             {
                 threshold: 'p(95)<5000', // 95% of requests should be below 1000ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_duration{name:render_7d_offset_10m}': [
+        'http_req_duration{label:render_1d_offset_7d}': [
             {
                 threshold: 'p(95)<5000', // 95% of requests should be below 1000ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_duration{name:render_30d_offset_0}': [
+        'http_req_duration{label:render_7d_offset_0}': [
+            {
+                threshold: 'p(95)<7000', // 95% of requests should be below 1000ms
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'http_req_duration{label:render_7d_offset_10m}': [
+            {
+                threshold: 'p(95)<7000', // 95% of requests should be below 1000ms
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'http_req_duration{label:render_30d_offset_0}': [
             {
                 threshold: 'p(95)<10000', // 95% of requests should be below 1000ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_duration{name:render_90d_offset_0}': [
+        'http_req_duration{label:render_90d_offset_0}': [
             {
                 threshold: 'p(95)<15000', // 95% of requests should be below 1000ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_duration{name:render_365d_offset_0}': [
+        'http_req_duration{label:render_365d_offset_0}': [
             {
                 threshold: 'p(95)<20000', // 95% of requests should be below 1000ms
                 abortOnFail: true,
@@ -207,6 +209,7 @@ export const options = {
 };
 
 export function setup() {
+    console.log('started with delay ' + DELAY[0] + ':' + DELAY[1]);
     carbonapi.loadQueries(QUERIES, ADDR);
     carbonapi.renderAddIntervalGroup('render_1h_offset_0', 3600, 0);
     carbonapi.renderAddIntervalGroup('render_1h_offset_7d', 3600, 3600 * 24 * 7);
@@ -220,19 +223,31 @@ export function setup() {
 }
 
 export function api_render() {
+    if (DELAY[0] > 0) {
+        sleep(randomInt(DELAY[0], DELAY[1]));
+    }
+
     let group = __ENV.GROUP
     let url = carbonapi.renderNextGetJSON(group)
 
-    // console.log("GROUP="+group, "VU="+__VU, "ITER="+__ITER, "URL="+url)
+    // console.log("GROUP="+group, "VU="+__VU, "ITER="+__ITER, "URL="+url[0])
 
-    let resp = http.get(url, {
-        tags: { name: group },
+    let resp = http.get(url[0], {
+        tags: { name: url[1], label: group },
     });
     check(resp, {
         'success': (r) => r.status === 200,
     });
 
-    if (DELAY > 0) {
-        sleep(randomInt(DELAY[0], DELAY[1]));
-    }
+}
+
+// This will export to HTML as filename "result.html" AND also stdout using the text summary
+import { htmlReport } from "./k6-reporter.js"; //https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js
+import { textSummary } from "./k6-summary.js"; // https://jslib.k6.io/k6-summary/0.0.1/index.js
+
+export function handleSummary(data) {
+  return {
+    "result.html": htmlReport(data),
+    stdout: textSummary(data, { indent: " ", enableColors: true }),
+  };
 }
