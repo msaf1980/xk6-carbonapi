@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
-import { Counter } from 'k6/metrics';
+import { Trend } from 'k6/metrics';
 
 import carbonapi from "k6/x/carbonapi";
 import getenv from "k6/x/getenv";
@@ -24,6 +24,8 @@ let USERS_30D_0 = getenv.getInt(`${__ENV.USERS_30D_0}`, 0);
 let USERS_90D_0 = getenv.getInt(`${__ENV.USERS_90D_0}`, 0);
 let USERS_365D_0 = getenv.getInt(`${__ENV.USERS_365D_0}`, 0);
 
+let httpSendBytesTrend = Trend("http_req_send_bytes");
+let httpRecvBytesTrend = Trend("http_req_recv_bytes");
 let scenarios = {};
 
 if (USERS_1H_0 > 0) {
@@ -204,8 +206,19 @@ export const options = {
                 delayAbortEval: '10s',
             },
         ],
+        // workaround for output status codes
+        'http_req_duration{status:200}': ['max>=0'],
+        'http_req_duration{status:400}': ['max>=0'],
+        'http_req_duration{status:403}': ['max>=0'],
+        'http_req_duration{status:404}': ['max>=0'],
+        'http_req_duration{status:500}': ['max>=0'],
+        'http_req_duration{status:501}': ['max>=0'],
+        'http_req_duration{status:502}': ['max>=0'],
+        'http_req_duration{status:503}': ['max>=0'],
+        'http_req_duration{status:504}': ['max>=0'],
     },
     scenarios: scenarios,
+    summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(95)', 'p(99)', 'p(99.9)', 'count'],
 };
 
 export function setup() {
@@ -238,7 +251,10 @@ export function api_render() {
     check(resp, {
         'success': (r) => r.status === 200,
     });
-
+    if (resp.status == 200) {
+        httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
+        httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
+    }
 }
 
 // This will export to HTML as filename "result.html" AND also stdout using the text summary
