@@ -396,7 +396,7 @@ function generateTextSummary(data, options) {
 
   Array.prototype.push.apply(lines, summarizeMetrics(mergedOpts, data, decorate))
 
-  return lines.join('\n')
+  return lines.join('\n') + '\n\n'
 }
 
 var replacements = {
