@@ -6,6 +6,9 @@ import { Trend } from 'k6/metrics';
 import carbonapi from "k6/x/carbonapi";
 import getenv from "k6/x/getenv";
 
+import { htmlReport } from "./k6-reporter.js"; //https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js
+import { textSummary } from "./k6-summary.js"; // https://jslib.k6.io/k6-summary/0.0.1/index.js
+
 import { randomInt, getIntOrdered2 } from './rutils.js'
 
 let ADDR = getenv.getString(`${__ENV.ADDR}`, "http://127.0.0.1:8888");
@@ -258,8 +261,6 @@ export function api_render() {
 }
 
 // This will export to HTML as filename "result.html" AND also stdout using the text summary
-import { htmlReport } from "./k6-reporter.js"; //https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js
-import { textSummary } from "./k6-summary.js"; // https://jslib.k6.io/k6-summary/0.0.1/index.js
 
 export function handleSummary(data) {
   return {
