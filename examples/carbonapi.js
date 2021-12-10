@@ -27,14 +27,25 @@ let QUERIES = getenv.getString(`${__ENV.QUERIES}`, "carbonapi.txt");
 let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8:12"); // 1 request per random 8:12s for user
 let DURATION = getenv.getString(`${__ENV.DURATION}`, "60s"); // test duration
 
+let THRESHOLD_TIME_1H = getenv.getInt(`${__ENV.USERS_1H}`, 3000)
 let USERS_1H_0 = getenv.getInt(`${__ENV.USERS_1H_0}`, 10);
 let USERS_1H_7D = getenv.getInt(`${__ENV.USERS_1H_7D}`, 0);
+
+let THRESHOLD_TIME_1D = getenv.getInt(`${__ENV.USERS_1D}`, 5000)
 let USERS_1D_0 = getenv.getInt(`${__ENV.USERS_1D_0}`, 0);
 let USERS_1D_7D = getenv.getInt(`${__ENV.USERS_1D_7D}`, 0);
+
+let THRESHOLD_TIME_7D = getenv.getInt(`${__ENV.USERS_1D}`, 7000)
 let USERS_7D_0 = getenv.getInt(`${__ENV.USERS_7D_0}`, 0);
 let USERS_7D_10M = getenv.getInt(`${__ENV.USERS_7D_10M}`, 0);
+
+let THRESHOLD_TIME_30D = getenv.getInt(`${__ENV.USERS_1D}`, 10000)
 let USERS_30D_0 = getenv.getInt(`${__ENV.USERS_30D_0}`, 0);
+
+let THRESHOLD_TIME_90D = getenv.getInt(`${__ENV.USERS_1D}`, 15000)
 let USERS_90D_0 = getenv.getInt(`${__ENV.USERS_90D_0}`, 0);
+
+let THRESHOLD_TIME_365D = getenv.getInt(`${__ENV.USERS_1D}`, 20000)
 let USERS_365D_0 = getenv.getInt(`${__ENV.USERS_365D_0}`, 0);
 
 let httpSendBytesTrend = Trend("http_req_send_bytes");
@@ -151,63 +162,63 @@ export const options = {
         ],
         'http_req_duration{label:render_1h_offset_0}': [
             {
-                threshold: 'p(95)<3000', // 95% of requests should be below 1000ms
+                threshold: `p(95)<${THRESHOLD_TIME_1H}`, // 95% of requests should be below THRESHOLD_TIME_1H ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
         'http_req_duration{label:render_1h_offset_7d}': [
             {
-                threshold: 'p(95)<3000', // 95% of requests should be below 1000ms
+                threshold: `p(95)<${THRESHOLD_TIME_1H}`, // 95% of requests should be below THRESHOLD_TIME_1H ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
         'http_req_duration{label:render_1d_offset_0}': [
             {
-                threshold: 'p(95)<5000', // 95% of requests should be below 1000ms
+                threshold: `p(95)<${THRESHOLD_TIME_1D}`, // 95% of requests should be below THRESHOLD_TIME_1D ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
         'http_req_duration{label:render_1d_offset_7d}': [
             {
-                threshold: 'p(95)<5000', // 95% of requests should be below 1000ms
+                threshold: `p(95)<${THRESHOLD_TIME_1D}`, // 95% of requests should be below THRESHOLD_TIME_1D ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
         'http_req_duration{label:render_7d_offset_0}': [
             {
-                threshold: 'p(95)<7000', // 95% of requests should be below 1000ms
+                threshold: `p(95)<${THRESHOLD_TIME_7D}`, // 95% of requests should be below THRESHOLD_TIME_7D
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
         'http_req_duration{label:render_7d_offset_10m}': [
             {
-                threshold: 'p(95)<7000', // 95% of requests should be below 1000ms
+                threshold: `p(95)<${THRESHOLD_TIME_7D}`, // 95% of requests should be below THRESHOLD_TIME_7D ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
         'http_req_duration{label:render_30d_offset_0}': [
             {
-                threshold: 'p(95)<10000', // 95% of requests should be below 1000ms
+                threshold: `p(95)<${THRESHOLD_TIME_30D}`, // 95% of requests should be below THRESHOLD_TIME_30D ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
         'http_req_duration{label:render_90d_offset_0}': [
             {
-                threshold: 'p(95)<15000', // 95% of requests should be below 1000ms
+                threshold: `p(95)<${THRESHOLD_TIME_90D}`, // 95% of requests should be below THRESHOLD_TIME_90D ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
         'http_req_duration{label:render_365d_offset_0}': [
             {
-                threshold: 'p(95)<20000', // 95% of requests should be below 1000ms
+                threshold: `p(95)<${THRESHOLD_TIME_365D}`, // 95% of requests should be below THRESHOLD_TIME_365D ms
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
