@@ -1,3 +1,4 @@
+import encoding from 'k6/encoding';
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -12,6 +13,15 @@ import { textSummary } from "./k6-summary.js"; // https://jslib.k6.io/k6-summary
 import { randomInt, getIntOrdered2 } from './rutils.js'
 
 let ADDR = getenv.getString(`${__ENV.ADDR}`, "http://127.0.0.1:8888");
+let USER = getenv.getEnv("CARBONAPI_USER", "");
+let PASSWORD = getenv.getEnv("CARBONAPI_PASSWORD", "");
+let headers = {};
+if (USER.length > 0 && PASSWORD.length > 0) {
+    // authenticate using HTTP Basic Auth
+    const encodedCredentials = encoding.b64encode(`${USER}:${PASSWORD}`);
+    headers["Authorization"] = `Basic ${encodedCredentials}`;
+}
+
 let QUERIES = getenv.getString(`${__ENV.QUERIES}`, "carbonapi.txt");
 
 let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8:12"); // 1 request per random 8:12s for user
@@ -225,6 +235,14 @@ export const options = {
 };
 
 export function setup() {
+    if (USER.length > 0 && PASSWORD.length == 0) {
+        console.warn(`not enable basic auth, CARBONAPI_PASSWORD not passed`);
+    } else if (USER.length == 0 && PASSWORD.length > 0) {
+        console.warn(`not enable basic auth, CARBONAPI_USER not passed`);
+    } else if (USER.length > 0 && PASSWORD.length > 0) {
+        console.log(`enable basic auth with user ${USER}`);
+    }
+
     console.log('started with delay ' + DELAY[0] + ':' + DELAY[1]);
     carbonapi.loadQueries(QUERIES, ADDR);
     carbonapi.renderAddIntervalGroup('render_1h_offset_0', 3600, 0);
@@ -249,6 +267,7 @@ export function api_render() {
     // console.log("GROUP="+group, "VU="+__VU, "ITER="+__ITER, "URL="+url[0])
 
     let resp = http.get(url[0], {
+        headers: headers,
         tags: { name: url[1], label: group },
     });
     check(resp, {

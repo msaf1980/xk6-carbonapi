@@ -51,6 +51,11 @@ USERS_90D_0   : 0    # Number of users with queries in 90 days range (disabled b
 USERS_365D_0  : 0    # Number of users with queries in 365 days range (disabled by default)
 ```
 
+Pass CARBONAPI_USER and CARBONAPI_PASSWORD, if basic auth is needed
+ ```shell
+$ export CARBONAPI_USER="username" CARBONAPI_PASSWORD="password"
+  ```
+
  ```shell
 $ K6_STATSD_ADDR='graphite-relay:8125' K6_STATSD_BUFFER_SIZE=1000 K6_STATSD_TAG_APPEND='label' K6_STATSD_NAMESPACE="DevOps.loadtest.k6.graphite.staging." ./k6 run -e ADDR="http://localhost:8889" -e USERS_7D_0=100 --out statsd examples/carbonapi.js
   ```
