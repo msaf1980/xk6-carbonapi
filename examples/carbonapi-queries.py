@@ -96,7 +96,7 @@ def main():
         parse_line(line)
 
     # PrintCSV header
-    print('#target')
+    print('target')
 
     for u in urls:
         print("%s" % u)
