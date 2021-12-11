@@ -37,7 +37,7 @@ Tune with variables
 ADDR          : "http://127.0.0.1:8888"
 QUERIES       : "carbonapi.txt"           # Test dataset
 
-DELAY         : 10     # 1 request per 10s for user, can used random value in range, pass like MIN:MAX
+DELAY         : 8000:12000     # 1 request per random (in range 8:12 seconds) for user, can used random value in range, pass like MIN:MAX or fixed like DELAY (in ms)
 DURATION      : "60s"  # test duration
 
 USERS_1H_0    : 10   # Number of users with queries in 1 hour range
@@ -69,4 +69,12 @@ $ export CARBONAPI_USER="username" CARBONAPI_PASSWORD="password"
 $ K6_STATSD_ADDR='graphite-relay:8125' K6_STATSD_BUFFER_SIZE=1000 K6_STATSD_TAG_APPEND='label' K6_STATSD_NAMESPACE="DevOps.loadtest.k6.graphite.staging." ./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsd carbonapi.js
   ```
 
+For long duration tests with limited memory usage can be run sequent
 
+```shell
+$ for i in `seq 1 24`; do 
+echo "Execute step ${i}" ;
+K6_STATSD_ADDR='graphite-relay:8125' K6_STATSD_BUFFER_SIZE=1000 K6_STATSD_TAG_APPEND='label' K6_STATSD_NAMESPACE="DevOps.loadtest.k6.graphite.staging." ./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsd carbonapi.js ;
+[ "$?" == "0" ] || break ;
+done
+  ```

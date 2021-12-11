@@ -24,7 +24,7 @@ if (USER.length > 0 && PASSWORD.length > 0) {
 
 let QUERIES = getenv.getString(`${__ENV.QUERIES}`, "carbonapi.txt");
 
-let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8:12"); // 1 request per random 8:12s for user
+let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8000:12000"); // 1 request per random  in range 8:12 s for user
 let DURATION = getenv.getString(`${__ENV.DURATION}`, "60s"); // test duration
 
 let THRESHOLD_TIME_1H = getenv.getInt(`${__ENV.USERS_1H}`, 3000)
@@ -256,7 +256,7 @@ export function setup() {
         console.log(`enable basic auth with user ${USER}`);
     }
 
-    console.log('started with delay ' + DELAY[0] + ':' + DELAY[1]);
+    console.log('started with delay ' + DELAY[0] + ':' + DELAY[1] + " ms");
     carbonapi.loadQueries(QUERIES, ADDR);
     carbonapi.renderAddIntervalGroup('render_1h_offset_0', 3600, 0);
     carbonapi.renderAddIntervalGroup('render_1h_offset_7d', 3600, 3600 * 24 * 7);
@@ -271,7 +271,7 @@ export function setup() {
 
 export function api_render() {
     if (DELAY[0] > 0) {
-        sleep(randomInt(DELAY[0], DELAY[1]));
+        sleep(randomInt(DELAY[0], DELAY[1]) / 1000);
     }
 
     let group = __ENV.GROUP
