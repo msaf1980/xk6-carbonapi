@@ -48,6 +48,8 @@ let USERS_90D_0 = getenv.getInt(`${__ENV.USERS_90D_0}`, 0);
 let THRESHOLD_TIME_365D = getenv.getInt(`${__ENV.USERS_1D}`, 20000)
 let USERS_365D_0 = getenv.getInt(`${__ENV.USERS_365D_0}`, 0);
 
+let THRESHOLD_FAIL_PCNT = getenv.getInt(`${__ENV.THRESHOLD_FAIL_PCNT}`, 1) / 100.0
+
 let httpSendBytesTrend = Trend("http_req_send_bytes");
 let httpRecvBytesTrend = Trend("http_req_recv_bytes");
 let scenarios = {};
@@ -155,7 +157,7 @@ export const options = {
     thresholds: {
         'http_req_failed{label:render_1h_offset_0}': [
             {
-                threshold: 'rate<0.01', // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
