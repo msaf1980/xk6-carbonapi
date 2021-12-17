@@ -27,25 +27,25 @@ let QUERIES = getenv.getString(`${__ENV.QUERIES}`, "carbonapi.txt");
 let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8000:12000"); // 1 request per random  in range 8:12 s for user
 let DURATION = getenv.getString(`${__ENV.DURATION}`, "60s"); // test duration
 
-let THRESHOLD_TIME_1H = getenv.getInt(`${__ENV.USERS_1H}`, 3000)
+let THRESHOLD_TIME_1H = getenv.getInt(`${__ENV.THRESHOLD_TIME_1H}`, 3000)
 let USERS_1H_0 = getenv.getInt(`${__ENV.USERS_1H_0}`, 10);
 let USERS_1H_7D = getenv.getInt(`${__ENV.USERS_1H_7D}`, 0);
 
-let THRESHOLD_TIME_1D = getenv.getInt(`${__ENV.USERS_1D}`, 5000)
+let THRESHOLD_TIME_1D = getenv.getInt(`${__ENV.THRESHOLD_TIME_1D}`, 5000)
 let USERS_1D_0 = getenv.getInt(`${__ENV.USERS_1D_0}`, 0);
 let USERS_1D_7D = getenv.getInt(`${__ENV.USERS_1D_7D}`, 0);
 
-let THRESHOLD_TIME_7D = getenv.getInt(`${__ENV.USERS_1D}`, 7000)
+let THRESHOLD_TIME_7D = getenv.getInt(`${__ENV.THRESHOLD_TIME_7D}`, 7000)
 let USERS_7D_0 = getenv.getInt(`${__ENV.USERS_7D_0}`, 0);
 let USERS_7D_10M = getenv.getInt(`${__ENV.USERS_7D_10M}`, 0);
 
-let THRESHOLD_TIME_30D = getenv.getInt(`${__ENV.USERS_1D}`, 10000)
+let THRESHOLD_TIME_30D = getenv.getInt(`${__ENV.THRESHOLD_TIME_30D}`, 10000)
 let USERS_30D_0 = getenv.getInt(`${__ENV.USERS_30D_0}`, 0);
 
-let THRESHOLD_TIME_90D = getenv.getInt(`${__ENV.USERS_1D}`, 15000)
+let THRESHOLD_TIME_90D = getenv.getInt(`${__ENV.THRESHOLD_TIME_90D}`, 15000)
 let USERS_90D_0 = getenv.getInt(`${__ENV.USERS_90D_0}`, 0);
 
-let THRESHOLD_TIME_365D = getenv.getInt(`${__ENV.USERS_1D}`, 20000)
+let THRESHOLD_TIME_365D = getenv.getInt(`${__ENV.THRESHOLD_TIME_365D}`, 20000)
 let USERS_365D_0 = getenv.getInt(`${__ENV.USERS_365D_0}`, 0);
 
 let THRESHOLD_FAIL_PCNT = getenv.getInt(`${__ENV.THRESHOLD_FAIL_PCNT}`, 1) / 100.0
