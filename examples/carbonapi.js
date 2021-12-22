@@ -239,6 +239,7 @@ export const options = {
         'http_req_duration{status:403}': ['max>=0'],
         'http_req_duration{status:404}': ['max>=0'],
         'http_req_duration{status:429}': ['max>=0'],
+        'http_req_duration{status:499}': ['max>=0'], // timeout
         'http_req_duration{status:500}': ['max>=0'],
         'http_req_duration{status:501}': ['max>=0'],
         'http_req_duration{status:502}': ['max>=0'],
