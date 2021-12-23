@@ -41,10 +41,10 @@ func (m *Module) RenderAddIntervalGroup(group string, duration, offset int64) {
 	m.q.render.intervals[group] = &RenderState{duration: duration, offset: offset}
 }
 
-func (m *Module) RenderNextGetJSON(group string, offset int64) (string, error) {
+func (m *Module) RenderNextGetJSON(group string, offset int64) (string, string, error) {
 	s, ok := m.q.render.intervals[group]
 	if !ok {
-		return "", fmt.Errorf("group not found: %s in %+v", group, m.q.render.intervals)
+		return "", "", fmt.Errorf("group not found: %s in %+v", group, m.q.render.intervals)
 	}
 
 	until := rand.Int63n(randInterval)/10 + s.offset // random in day range with offset
@@ -56,23 +56,24 @@ func (m *Module) RenderNextGetJSON(group string, offset int64) (string, error) {
 	var sb stringutils.Builder
 	sb.Grow(512)
 	sb.WriteString(m.q.render.baseURL)
-	sb.WriteString("/render/?format=json&from=-")
+	start := sb.Len()
+	sb.WriteString("/render/?format=json")
+	for _, target := range targets {
+		sb.WriteString("&target=")
+		sb.WriteString(target)
+	}
+	end := sb.Len()
+	sb.WriteString("&from=-")
 	sb.WriteInt(from, 10)
 	if until > 0 {
 		sb.WriteString("s&until=-")
 		sb.WriteInt(until, 10)
-		sb.WriteString("s&")
+		sb.WriteString("s")
 	} else {
-		sb.WriteString("s&until=now&")
-	}
-	for i, target := range targets {
-		if i == 0 {
-			sb.WriteString("target=")
-		} else {
-			sb.WriteString("&target=")
-		}
-		sb.WriteString(target)
+		sb.WriteString("s&until=now")
 	}
 
-	return sb.String(), nil
+	url := sb.String()
+
+	return url, url[start:end] + "&label=" + group, nil
 }

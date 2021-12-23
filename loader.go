@@ -27,8 +27,15 @@ func carbonapiQuery(path string, baseURL string) (*CarbonapiQuery, error) {
 	q := &CarbonapiQuery{render: newRender(baseURL, nil)}
 
 	scanner := bufio.NewScanner(file)
+	first := true
 	for scanner.Scan() {
 		line := scanner.Text()
+		if first {
+			first = false
+			if line == "target" {
+				continue
+			}
+		}
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
