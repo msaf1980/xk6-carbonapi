@@ -65,16 +65,20 @@ Pass CARBONAPI_USER and CARBONAPI_PASSWORD, if basic auth is needed
 $ export CARBONAPI_USER="username" CARBONAPI_PASSWORD="password"
   ```
 
- ```shell
-$ K6_STATSD_ADDR='graphite-relay:8125' K6_STATSD_BUFFER_SIZE=1000 K6_STATSD_TAG_APPEND='label' K6_STATSD_NAMESPACE="DevOps.loadtest.k6.graphite.staging." ./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsd carbonapi.js
-  ```
+For different statistic for each query group use statsite output (identifical with statsd, but tagged metrics not supported and some taggs can be appended to metric with K6_STATSITE_TAG_APPEND)
 
+ ```shell
+$ K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging." ./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite carbonapi.js
+  ```
+  
 For long duration tests with limited memory usage can be run sequent
 
 ```shell
-$ for i in `seq 1 24`; do 
+$
+export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging." 
+for i in `seq 1 24`; do 
 echo "Execute step ${i}" ;
-K6_STATSD_ADDR='graphite-relay:8125' K6_STATSD_BUFFER_SIZE=1000 K6_STATSD_TAG_APPEND='label' K6_STATSD_NAMESPACE="DevOps.loadtest.k6.graphite.staging." ./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsd carbonapi.js ;
+./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite carbonapi.js ;
 [ "$?" == "0" ] || break ;
 done
   ```
