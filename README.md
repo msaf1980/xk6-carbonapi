@@ -76,9 +76,5 @@ For long duration tests with limited memory usage can be run sequent
 ```shell
 $
 export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging." 
-for i in `seq 1 24`; do 
-echo "Execute step ${i}" ;
-./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite carbonapi.js ;
-[ "$?" == "0" ] || break ;
-done
+./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=10m -C 10 --out json=result.json.gz --out statsite carbonapi.js
   ```

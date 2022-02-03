@@ -4,8 +4,8 @@
 version: "3"
 
 env:
-  #K6_VERSION: v0.35.0
-  #XK6_K6_REPO: "/home/msv/go/src/github.com/grafana/k6" # Build from local repo 
+  #K6_VERSION: v0.36.0
+  XK6_K6_REPO: "/home/msv/go/src/github.com/grafana/k6" # Build from local repo 
   XK6_GETENV_VERSION: v0.0.4
   XK6_STATSITE_VERSION: v0.0.3
 
