@@ -27,7 +27,7 @@ Then, install [xk6](https://github.com/grafana/xk6) and build your custom k6 bin
 
 2. Build the binary:
   ```shell
-  $ xk6 build --with github.com/msaf1980/xk6-carbonapi@latest --with github.com/msaf1980/xk6-getenv@v0.0.4
+  $ xk6 build --with github.com/msaf1980/xk6-carbonapi@latest --with github.com/msaf1980/xk6-getenv@v0.0.4 --with github.com/msaf1980/xk6-statsite@v0.0.3
   ```
 
 # example
