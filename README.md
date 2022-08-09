@@ -27,7 +27,12 @@ Then, install [xk6](https://github.com/grafana/xk6) and build your custom k6 bin
 
 2. Build the binary:
   ```shell
-  $ xk6 build --with github.com/msaf1980/xk6-carbonapi@latest --with github.com/msaf1980/xk6-getenv@v0.0.4 --with github.com/msaf1980/xk6-statsite@v0.0.3
+  $ make build
+  ```
+
+3. For run test cycle
+  ```shell
+  $ make
   ```
 
 # example
@@ -68,7 +73,9 @@ $ export CARBONAPI_USER="username" CARBONAPI_PASSWORD="password"
 For different statistic for each query group use statsite output (identifical with statsd, but tagged metrics not supported and some taggs can be appended to metric with K6_STATSITE_TAG_APPEND)
 
  ```shell
-$ K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging." ./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite carbonapi.js
+$
+export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging."
+./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite carbonapi.js
   ```
   
 For long duration tests with limited memory usage can be run sequent
