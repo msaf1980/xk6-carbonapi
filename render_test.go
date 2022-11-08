@@ -59,7 +59,7 @@ func TestRender_RenderNextGetJSON(t *testing.T) {
 	}
 	for n, tt := range tests {
 		t.Run(fmt.Sprintf("(%d) %s", n, tt.name), func(t *testing.T) {
-			got, gotName, err := m.RenderNextGetJSON(tt.name, 0)
+			got, gotName, err := m.RenderNextGet(tt.name, "json", 0)
 			if err != nil {
 				t.Errorf("Render.NextGetJSON(\"%s\") got error '%v'", tt.name, err)
 			} else {

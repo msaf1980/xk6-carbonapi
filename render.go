@@ -41,7 +41,7 @@ func (m *Module) RenderAddIntervalGroup(group string, duration, offset int64) {
 	m.q.render.intervals[group] = &RenderState{duration: duration, offset: offset}
 }
 
-func (m *Module) RenderNextGetJSON(group string, offset int64) (string, string, error) {
+func (m *Module) RenderNextGet(group, format string, offset int64) (string, string, error) {
 	s, ok := m.q.render.intervals[group]
 	if !ok {
 		return "", "", fmt.Errorf("group not found: %s in %+v", group, m.q.render.intervals)
@@ -57,7 +57,8 @@ func (m *Module) RenderNextGetJSON(group string, offset int64) (string, string, 
 	sb.Grow(512)
 	sb.WriteString(m.q.render.baseURL)
 	start := sb.Len()
-	sb.WriteString("/render/?format=json")
+	sb.WriteString("/render/?format=")
+	sb.WriteString(format)
 	for _, target := range targets {
 		sb.WriteString("&target=")
 		sb.WriteString(target)

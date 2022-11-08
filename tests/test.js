@@ -12,6 +12,6 @@ export function setup() {
 }
 
 export default function() {
-    let t = carbonapi.renderNextGetJSON("default", 0)
+    let t = carbonapi.renderNextGet("default", "json", 0)
     console.log("iter="+__ITER, "vu=" + __VU, "url=" + t[0], "name=" + t[1]);
 }

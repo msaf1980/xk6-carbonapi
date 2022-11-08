@@ -27,6 +27,8 @@ let QUERIES = getenv.getString(`${__ENV.QUERIES}`, "carbonapi.txt");
 let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8000:12000"); // 1 request per random  in range 8:12 s for user
 let DURATION = getenv.getString(`${__ENV.DURATION}`, "60s"); // test duration
 
+let RENDER_FORMAT = getenv.getString(`${__ENV.RENDER_FORMAT}`, "json");
+
 let THRESHOLD_TIME_1H = getenv.getInt(`${__ENV.THRESHOLD_TIME_1H}`, 3000)
 let USERS_1H_0 = getenv.getInt(`${__ENV.USERS_1H_0}`, 10);
 let USERS_1H_7D = getenv.getInt(`${__ENV.USERS_1H_7D}`, 0);
@@ -57,7 +59,7 @@ let scenarios = {};
 if (USERS_1H_0 > 0) {
     scenarios["render_1h_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render',
+        exec: 'api_render_get',
         vus: USERS_1H_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -68,7 +70,7 @@ if (USERS_1H_0 > 0) {
 if (USERS_1H_7D > 0) {
     scenarios["render_1h_offset_7d"] = {
         executor: 'constant-vus',
-        exec: 'api_render',
+        exec: 'api_render_get',
         vus: USERS_1H_7D,
         duration: DURATION,
         gracefulStop: '10s',
@@ -79,7 +81,7 @@ if (USERS_1H_7D > 0) {
 if (USERS_1D_0 > 0) {
     scenarios["render_1d_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render',
+        exec: 'api_render_get',
         vus: USERS_1D_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -90,7 +92,7 @@ if (USERS_1D_0 > 0) {
 if (USERS_1D_7D > 0) {
     scenarios["render_1d_offset_7d"] = {
         executor: 'constant-vus',
-        exec: 'api_render',
+        exec: 'api_render_get',
         vus: USERS_1D_7D,
         duration: DURATION,
         gracefulStop: '10s',
@@ -101,7 +103,7 @@ if (USERS_1D_7D > 0) {
 if (USERS_7D_0 > 0) {
     scenarios["render_7d_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render',
+        exec: 'api_render_get',
         vus: USERS_7D_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -112,7 +114,7 @@ if (USERS_7D_0 > 0) {
 if (USERS_7D_10M > 0) {
     scenarios["render_7d_offset_10m"] = {
         executor: 'constant-vus',
-        exec: 'api_render',
+        exec: 'api_render_get',
         vus: USERS_7D_10M,
         duration: DURATION,
         gracefulStop: '10s',
@@ -123,7 +125,7 @@ if (USERS_7D_10M > 0) {
 if (USERS_30D_0 > 0) {
     scenarios["render_30d_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render',
+        exec: 'api_render_get',
         vus: USERS_30D_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -134,7 +136,7 @@ if (USERS_30D_0 > 0) {
 if (USERS_90D_0 > 0) {
     scenarios["render_90d_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render',
+        exec: 'api_render_get',
         vus: USERS_90D_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -145,7 +147,7 @@ if (USERS_90D_0 > 0) {
 if (USERS_365D_0 > 0) {
     scenarios["render_365d_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render',
+        exec: 'api_render_get',
         vus: USERS_365D_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -260,6 +262,7 @@ export function setup() {
     }
 
     console.log('started with delay ' + DELAY[0] + ':' + DELAY[1] + " ms");
+    console.log('render format: ' + RENDER_FORMAT);
     carbonapi.loadQueries(QUERIES, ADDR);
     carbonapi.renderAddIntervalGroup('render_1h_offset_0', 3600, 0);
     carbonapi.renderAddIntervalGroup('render_1h_offset_7d', 3600, 3600 * 24 * 7);
@@ -272,13 +275,13 @@ export function setup() {
     carbonapi.renderAddIntervalGroup('render_365d_offset_0', 3600 * 24 * 365, 0);
 }
 
-export function api_render() {
+export function api_render_get() {
     if (DELAY[0] > 0) {
         sleep(randomInt(DELAY[0], DELAY[1]) / 1000);
     }
 
     let group = __ENV.GROUP
-    let url = carbonapi.renderNextGetJSON(group)
+    let url = carbonapi.renderNextGet(group, RENDER_FORMAT, 0)
 
     // console.log("GROUP="+group, "VU="+__VU, "ITER="+__ITER, "URL="+url[0])
 
