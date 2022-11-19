@@ -6,7 +6,10 @@ import (
 	"math/rand"
 	"sync"
 	"sync/atomic"
+	"time"
 
+	"github.com/dop251/goja"
+	pb_v3 "github.com/go-graphite/protocol/carbonapi_v3_pb"
 	"github.com/msaf1980/go-stringutils"
 	"go.k6.io/k6/js/modules"
 )
@@ -30,7 +33,8 @@ func (c *Carbonapi) Exports() modules.Exports {
 			"loadQueries":            c.LoadQueries,
 			"renderAddIntervalGroup": c.RenderAddIntervalGroup,
 			"renderNextGet":          c.RenderNextGet,
-			// "encode_pb_v3": c.encodePb_V3,
+			"renderNextPb_v3":        c.RenderNextPb_v3,
+			"decodeRenderReqPb_v3":   c.DecodeRenderReqPb_v3,
 		},
 	}
 }
@@ -67,7 +71,7 @@ func (c *Carbonapi) RenderAddIntervalGroup(group string, duration, offset int64)
 	return nil
 }
 
-func (c *Carbonapi) RenderNextGet(group, format string, offset int64) (string, string, error) {
+func (c *Carbonapi) RenderNextGet(group, format string, offset int64) (url string, label string, err error) {
 	s, ok := q.render.intervals[group]
 	if !ok {
 		return "", "", fmt.Errorf("group not found: %s in %+v", group, q.render.intervals)
@@ -83,7 +87,8 @@ func (c *Carbonapi) RenderNextGet(group, format string, offset int64) (string, s
 	sb.Grow(512)
 	sb.WriteString(q.render.baseURL)
 	start := sb.Len()
-	sb.WriteString("/render/?format=")
+	sb.WriteString("/render/")
+	sb.WriteString("?format=")
 	sb.WriteString(format)
 	for _, target := range targets {
 		sb.WriteString("&target=")
@@ -100,28 +105,75 @@ func (c *Carbonapi) RenderNextGet(group, format string, offset int64) (string, s
 		sb.WriteString("s&until=now")
 	}
 
-	url := sb.String()
+	url = sb.String()
+	label = url[start:end] + "&label=" + group
 
-	return url, url[start:end] + "&label=" + group, nil
+	return
 }
 
-// // randomBytes returns random data of the given size.
-// func (c *Crypto) randomBytes(size int) (*goja.ArrayBuffer, error) {
-// 	if size < 1 {
-// 		return nil, errors.New("invalid size")
-// 	}
-// 	bytes := make([]byte, size)
-// 	_, err := rand.Read(bytes)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	ab := c.vu.Runtime().NewArrayBuffer(bytes)
-// 	return &ab, nil
-// }
+func req_pb_v3(r *goja.Runtime, targets []string, from, until int64) (reqBody *goja.ArrayBuffer, err error) {
+	multiFetchRequest := pb_v3.MultiFetchRequest{
+		Metrics: make([]pb_v3.FetchRequest, 0, len(targets)),
+	}
+	for _, target := range targets {
+		multiFetchRequest.Metrics = append(multiFetchRequest.Metrics, pb_v3.FetchRequest{
+			Name:           target,
+			PathExpression: target,
+			StartTime:      from,
+			StopTime:       until,
+		})
+	}
+	var bytes []byte
+	bytes, err = multiFetchRequest.Marshal()
+	if err == nil {
+		b := r.NewArrayBuffer(bytes)
+		reqBody = &b
+	}
+	return
+}
 
-// // md4 returns the MD4 hash of input in the given encoding.
-// func (c *Crypto) md4(input interface{}, outputEncoding string) (interface{}, error) {
-// 	hasher := c.createHash("md4")
-// 	hasher.Update(input)
-// 	return hasher.Digest(outputEncoding)
-// }
+var timeNow func() time.Time = time.Now
+
+func (c *Carbonapi) RenderNextPb_v3(group, format string, offset int64) (url string, name string, reqBody *goja.ArrayBuffer, err error) {
+	s, ok := q.render.intervals[group]
+	if !ok {
+		return "", "", nil, fmt.Errorf("group not found: %s in %+v", group, q.render.intervals)
+	}
+
+	until := timeNow().Unix() - rand.Int63n(randInterval)/10 - s.offset // random in day range with offset
+	from := until - s.duration
+
+	pos := int64((atomic.AddUint64(&s.pos, 1) + uint64(offset) - 1) % uint64(len(q.render.targets)))
+	targets := q.render.targets[pos]
+
+	var sb stringutils.Builder
+	sb.Grow(512)
+	sb.WriteString(q.render.baseURL)
+	start := sb.Len()
+	sb.WriteString("/render/")
+	sb.WriteString("?format=")
+	sb.WriteString(format)
+	qEnd := sb.Len()
+	for _, target := range targets {
+		sb.WriteString("&target=")
+		sb.WriteString(target)
+	}
+	sb.WriteString("&label=")
+	sb.WriteString(group)
+
+	q := sb.String()
+	url = q[:qEnd]
+	name = q[start:]
+
+	reqBody, err = req_pb_v3(c.vu.Runtime(), targets, from, until)
+
+	return
+}
+
+func (c *Carbonapi) DecodeRenderReqPb_v3(reqBody *goja.ArrayBuffer) (req *pb_v3.MultiFetchRequest, err error) {
+	req = &pb_v3.MultiFetchRequest{}
+	if err = req.Unmarshal(reqBody.Bytes()); err != nil {
+		return
+	}
+	return
+}

@@ -28,6 +28,11 @@ let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8000:12000"); // 1 request per ran
 let DURATION = getenv.getString(`${__ENV.DURATION}`, "60s"); // test duration
 
 let RENDER_FORMAT = getenv.getString(`${__ENV.RENDER_FORMAT}`, "json");
+let F_API_RENDER = 'api_render_get'
+if (RENDER_FORMAT == 'carbonapi_v3_pb') {
+    F_API_RENDER = 'api_render_pb_v3'
+}
+
 
 let THRESHOLD_TIME_1H = getenv.getInt(`${__ENV.THRESHOLD_TIME_1H}`, 3000)
 let USERS_1H_0 = getenv.getInt(`${__ENV.USERS_1H_0}`, 10);
@@ -59,7 +64,7 @@ let scenarios = {};
 if (USERS_1H_0 > 0) {
     scenarios["render_1h_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render_get',
+        exec: F_API_RENDER,
         vus: USERS_1H_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -70,7 +75,7 @@ if (USERS_1H_0 > 0) {
 if (USERS_1H_7D > 0) {
     scenarios["render_1h_offset_7d"] = {
         executor: 'constant-vus',
-        exec: 'api_render_get',
+        exec: F_API_RENDER,
         vus: USERS_1H_7D,
         duration: DURATION,
         gracefulStop: '10s',
@@ -81,7 +86,7 @@ if (USERS_1H_7D > 0) {
 if (USERS_1D_0 > 0) {
     scenarios["render_1d_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render_get',
+        exec: F_API_RENDER,
         vus: USERS_1D_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -92,7 +97,7 @@ if (USERS_1D_0 > 0) {
 if (USERS_1D_7D > 0) {
     scenarios["render_1d_offset_7d"] = {
         executor: 'constant-vus',
-        exec: 'api_render_get',
+        exec: F_API_RENDER,
         vus: USERS_1D_7D,
         duration: DURATION,
         gracefulStop: '10s',
@@ -103,7 +108,7 @@ if (USERS_1D_7D > 0) {
 if (USERS_7D_0 > 0) {
     scenarios["render_7d_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render_get',
+        exec: F_API_RENDER,
         vus: USERS_7D_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -114,7 +119,7 @@ if (USERS_7D_0 > 0) {
 if (USERS_7D_10M > 0) {
     scenarios["render_7d_offset_10m"] = {
         executor: 'constant-vus',
-        exec: 'api_render_get',
+        exec: F_API_RENDER,
         vus: USERS_7D_10M,
         duration: DURATION,
         gracefulStop: '10s',
@@ -125,7 +130,7 @@ if (USERS_7D_10M > 0) {
 if (USERS_30D_0 > 0) {
     scenarios["render_30d_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render_get',
+        exec: F_API_RENDER,
         vus: USERS_30D_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -136,7 +141,7 @@ if (USERS_30D_0 > 0) {
 if (USERS_90D_0 > 0) {
     scenarios["render_90d_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render_get',
+        exec: F_API_RENDER,
         vus: USERS_90D_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -147,7 +152,7 @@ if (USERS_90D_0 > 0) {
 if (USERS_365D_0 > 0) {
     scenarios["render_365d_offset_0"] = {
         executor: 'constant-vus',
-        exec: 'api_render_get',
+        exec: F_API_RENDER,
         vus: USERS_365D_0,
         duration: DURATION,
         gracefulStop: '10s',
@@ -290,9 +295,32 @@ export function api_render_get() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => r.status === 200,
+        'success': (r) => r.status === 200 || r.status === 404,
     });
-    if (resp.status == 200) {
+    if (resp.status == 200 || resp.status == 404) {
+        httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
+        httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
+    }
+}
+
+export function api_render_pb_v3() {
+    if (DELAY[0] > 0) {
+        sleep(randomInt(DELAY[0], DELAY[1]) / 1000);
+    }
+
+    let group = __ENV.GROUP
+    let url = carbonapi.renderNextPb_v3(group, RENDER_FORMAT, 0)
+
+    // console.log("GROUP="+group, "VU="+__VU, "ITER="+__ITER, "URL="+url[0])
+
+    let resp = http.post(url[0], url[2], {
+        headers: headers,
+        tags: { name: url[1], label: group },
+    });
+    check(resp, {
+        'success': (r) => r.status === 200 || r.status === 404,
+    });
+    if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
     }

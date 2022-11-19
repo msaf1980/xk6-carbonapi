@@ -2,14 +2,11 @@
 
 This is a [k6](https://go.k6.io/k6) extension using the [xk6](https://github.com/grafana/xk6) system.
 
-| :exclamation: This is a proof of concept, isn't supported by the k6 team, and may break in the future. USE AT YOUR OWN RISK! |
 | ---------------------------------------------------------------------------------------------------------------------------- |
 
 This projects implements query generator for [graphite API](https://graphite-api.readthedocs.io/en/latest/api.html)
 |
 | ---------------------------------------------------------------------------------------------------------------------------- |
-
-Predominantly because of the above this is very unlikely to ever get in k6 in it's current form, so please don't open issues :D. 
 
 ## Build
 
@@ -64,7 +61,7 @@ THRESHOLD_TIME_30D   : 10000 # 95% of requests in group  USERS_30D_0 should be b
 THRESHOLD_TIME_90D   : 15000 # 95% of requests in group  USERS_90D_0 should be below THRESHOLD_TIME_90D ms
 THRESHOLD_TIME_365D  : 20000 # 95% of requests in group  USERS_365D_0 should be below THRESHOLD_TIME_365D ms
 
-RENDER_FORMAT        : json  # Render format: json , protobuf , carbonapi_pb_v2 (for graphite-clickhouse)
+RENDER_FORMAT        : json  # Render format: json, protobuf or carbonapi_pb_v2 (for graphite-clickhouse), carbonapi_pb_v3
 ```
 
 Pass CARBONAPI_USER and CARBONAPI_PASSWORD, if basic auth is needed
@@ -78,4 +75,12 @@ For different statistic for each query group use statsite output (identifical wi
 $
 export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging."
 ./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite examples/carbonapi.js
+```
+
+For graphite-web testing (with render carbonapi_v3_pb format)
+
+```shell
+$
+export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging."
+./k6 run -e ADDR="http://localhost:9090" -e RENDER_FORMAT=carbonapi_v3_pb -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite examples/carbonapi.js
 ```

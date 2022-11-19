@@ -11,12 +11,6 @@ type (
 	// RootModule is the global module instance that will create module
 	// instances for each VU.
 	RootModule struct{}
-
-	// ModuleInstance represents an instance of the GRPC module for every VU.
-	ModuleInstance struct {
-		vu      modules.VU
-		exports map[string]interface{}
-	}
 )
 
 var (
