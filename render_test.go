@@ -13,9 +13,9 @@ func TestRender_RenderNextGetJSON(t *testing.T) {
 
 	baseURL := "http://127.0.0.1:8080"
 
-	m := New()
-	m.q = &CarbonapiQuery{}
-	m.q.render = newRender(baseURL,
+	m := New().NewModuleInstance(nil).(*Carbonapi)
+	q = &CarbonapiQuery{}
+	q.render = newRender(baseURL,
 		[][]string{
 			{"test1.*"},
 			{"test2.*", "test3.*.test4"},

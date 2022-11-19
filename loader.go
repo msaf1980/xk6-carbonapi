@@ -19,6 +19,9 @@ func (b *CarbonapiQuery) Render() *Render {
 }
 
 func carbonapiQuery(path string, baseURL string) (*CarbonapiQuery, error) {
+	if baseURL == "" {
+		return nil, errors.New("base url not set")
+	}
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
