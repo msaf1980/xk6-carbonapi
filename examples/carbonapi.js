@@ -22,17 +22,16 @@ if (USER.length > 0 && PASSWORD.length > 0) {
     headers["Authorization"] = `Basic ${encodedCredentials}`;
 }
 
-let QUERIES = getenv.getString(`${__ENV.QUERIES}`, "render.txt");
-
 let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8000:12000"); // 1 request per random  in range 8:12 s for user
 let DURATION = getenv.getString(`${__ENV.DURATION}`, "60s"); // test duration
 
+// /render
+let RENDER = getenv.getString(`${__ENV.RENDER}`, "render.txt");
 let RENDER_FORMAT = getenv.getString(`${__ENV.RENDER_FORMAT}`, "json");
 let F_API_RENDER = 'api_render_get'
 if (RENDER_FORMAT == 'carbonapi_v3_pb') {
     F_API_RENDER = 'api_render_pb_v3'
 }
-
 
 let THRESHOLD_TIME_1H = getenv.getInt(`${__ENV.THRESHOLD_TIME_1H}`, 3000)
 let USERS_1H_0 = getenv.getInt(`${__ENV.USERS_1H_0}`, 10);
@@ -55,10 +54,22 @@ let USERS_90D_0 = getenv.getInt(`${__ENV.USERS_90D_0}`, 0);
 let THRESHOLD_TIME_365D = getenv.getInt(`${__ENV.THRESHOLD_TIME_365D}`, 20000)
 let USERS_365D_0 = getenv.getInt(`${__ENV.USERS_365D_0}`, 0);
 
-let THRESHOLD_FAIL_PCNT = getenv.getInt(`${__ENV.THRESHOLD_FAIL_PCNT}`, 1) / 100.0
+let THRESHOLD_FAIL_PCNT = getenv.getFloat(`${__ENV.THRESHOLD_FAIL_PCNT}`, 0.1) / 100.0
 
+// /metrics/find
+let FIND = getenv.getEnv("FIND", "find.txt");
+let FIND_FORMAT = getenv.getEnv("FIND_FORMAT", "json");
+let F_API_FIND = 'api_find_get'
+if (FIND_FORMAT == 'carbonapi_v3_pb') {
+    F_API_FIND = 'api_find_pb_v3'
+}
+let THRESHOLD_TIME_FIND = getenv.getInt(`${__ENV.THRESHOLD_TIME_FIND}`, 3000);
+let USERS_FIND = getenv.getInt(`${__ENV.USERS_FIND}`, 0);
+
+// additional metrics
 let httpSendBytesTrend = Trend("http_req_send_bytes");
 let httpRecvBytesTrend = Trend("http_req_recv_bytes");
+
 let scenarios = {};
 
 if (USERS_1H_0 > 0) {
@@ -268,7 +279,7 @@ export function setup() {
 
     console.log('started with delay ' + DELAY[0] + ':' + DELAY[1] + " ms");
     console.log('render format: ' + RENDER_FORMAT);
-    carbonapi.loadQueries(QUERIES, ADDR);
+    carbonapi.loadQueries(RENDER, ADDR);
     carbonapi.renderAddIntervalGroup('render_1h_offset_0', 3600, 0);
     carbonapi.renderAddIntervalGroup('render_1h_offset_7d', 3600, 3600 * 24 * 7);
     carbonapi.renderAddIntervalGroup('render_1d_offset_0', 3600 * 24, 0);
@@ -295,7 +306,7 @@ export function api_render_get() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => r.status === 200 || r.status === 404,
+        'success': (r) => r.status === 200 || r.status === 400 || r.status === 404,
     });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
@@ -318,7 +329,7 @@ export function api_render_pb_v3() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => r.status === 200 || r.status === 404,
+        'success': (r) => r.status === 200 || r.status === 400 || r.status === 404,
     });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })

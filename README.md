@@ -37,7 +37,7 @@ Then, install [xk6](https://github.com/grafana/xk6) and build your custom k6 bin
 Tune with variables
 ```
 ADDR          : "http://127.0.0.1:8888"
-QUERIES       : "carbonapi.txt"           # Test dataset
+TARGETS       : "render.txt"           # Test dataset
 
 DELAY         : 8000:12000     # 1 request per random (in range 8:12 seconds) for user, can used random value in range, pass like MIN:MAX or fixed like DELAY (in ms)
 DURATION      : "60s"  # test duration
