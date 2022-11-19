@@ -22,7 +22,7 @@ if (USER.length > 0 && PASSWORD.length > 0) {
     headers["Authorization"] = `Basic ${encodedCredentials}`;
 }
 
-let QUERIES = getenv.getString(`${__ENV.QUERIES}`, "carbonapi.txt");
+let QUERIES = getenv.getString(`${__ENV.QUERIES}`, "render.txt");
 
 let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8000:12000"); // 1 request per random  in range 8:12 s for user
 let DURATION = getenv.getString(`${__ENV.DURATION}`, "60s"); // test duration

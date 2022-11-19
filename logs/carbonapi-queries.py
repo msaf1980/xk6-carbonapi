@@ -30,13 +30,14 @@
 #    }
 #  }
 
-# Metrics find without arguments (query in body NOT LOGGED NOW !!!!)
+# Metrics find without arguments (query in body LOGGED version after 0.15.6 !!!!)
 #  {
 #    "level":"INFO","timestamp":"2022-08-10T00:32:11.548+0300","logger":"access","message":"request served",
 #    "data":{
 #      "handler":"find","carbonapi_uuid":"65f77141-efba-47fc-94b5-af4426985489",
 #      "url":"/metrics/find?from=1660078926&until=1660080732",
 #      "uri":"/metrics/find?from=1660078926&until=1660080732",
+#      "metrics":["test.*"],
 #      "peer_ip":"127.0.0.1","host":"localhost:8888","runtime":0.021548235,"http_code":200,
 #      "from_cache":false,"used_backend_cache":false,"zipper_requests":1,"total_metrics_count":53,
 #      "request_headers":{"X-Forwarded-User":"dgoleo","X-Grafana-Org-Id":"1"}
@@ -57,6 +58,8 @@
 #  }
 
 
+import argparse
+import os
 import sys
 import re
 import json
@@ -119,41 +122,117 @@ def timestamp_tz(param, tz):
     return int(timestamp(datetime.fromtimestamp(t, tz)))
 
 
-def parse_line(line, urls):
+def parse_line(line, render_params, find_params=None, tags_params=None):
     json_line = json.loads(line)
     if json_line.get('level') is None or json_line['level'] != 'INFO':
         return
     if json_line.get('logger') is None or json_line['logger'] != 'access':
         return
-    if json_line.get('data') is None or not json_line['data']['url'].startswith('/render'):
-        return
-    if json_line['data'].get('targets') is None:
+    if  json_line.get('data') is None:
         return
 
-    dt = dateutil.parser.parse(json_line['timestamp'])
-    json_line['time'] = int(timestamp(dt))
+    if json_line['data']['handler'] == 'render' and json_line['data']['url'].startswith('/render'):
+        if json_line['data'].get('targets') is None:
+            return
 
-    for target in json_line['data']['targets']:
+        dt = dateutil.parser.parse(json_line['timestamp'])
+        json_line['time'] = int(timestamp(dt))
+
         try:
-            url = '&target=' + quote_plus(target)
+            for target in json_line['data']['targets']:
+                url = '&target=' + quote_plus(target)
 
-            if url not in urls:
-                urls.add(url)
-        except:
-            pass
+                if url not in render_params:
+                    render_params.add(url)
+        except Exception as e:
+            sys.stderr.write("%s: %s" % (str(e), line))
+
+    elif not find_params is None and json_line['data']['handler'] == 'find' and json_line['data']['url'].startswith('/metrics/find'):
+        if json_line['data'].get('metrics') is None:
+            return
+
+        try:        
+            for metric in json_line['data']['metrics']:
+                url = '&query=' + quote_plus(metric)
+
+                if url not in find_params:
+                    find_params.add(url)
+        except Exception as e:
+            sys.stderr.write("%s: %s" % (str(e), line))
+
+    elif not tags_params is None and json_line['data']['handler'] == 'tags':
+        try:
+            url, args = json_line['data']['uri'].split('?')
+            if url.startswith('/tags/autoComplete/values') or url.startswith('/tags/autoComplete/tags'):
+                params = args.split('&')
+                uri = url + '?' + '&'.join(item for item in params
+                    if item.startswith('expr=') or item.startswith('limit=') or
+                        item.startswith('tag=') or item.startswith('valuePrefix=') or item.startswith('tagPrefix=') 
+                )
+                if uri not in tags_params:
+                    tags_params.add(uri)
+        except Exception as e:
+            sys.stderr.write("%s: %s" % (str(e), line))
+
+
+def parse_cmdline():
+    parser = argparse.ArgumentParser(description='Set network settings')
+    
+    #parser.add_argument('pos', action='store', type=str, help='positional parameter')
+
+    parser.add_argument('-l', '--log', dest='log', action='store', type=str, default="-",
+                         help='input log file')
+
+    parser.add_argument('-r', '--render', dest='render', action='store', type=str, default="-",
+                         help='render queries')
+
+    parser.add_argument('-f', '--find', dest='find', action='store', type=str, default=None,
+                         help='metrics find queries')
+
+    parser.add_argument('-t', '--tags', dest='tags', action='store', type=str, default=None,
+                         help='metrics find queries')
+                    
+    return parser.parse_args()
 
 
 def main():
-    urls = set()
+    args = parse_cmdline()
 
-    for line in sys.stdin:
-        parse_line(line, urls)
+    render_params = set()
+    find_params = None
+    if not args.find is None:
+        find_params = set()
+    tags_params = None
+    if not args.tags is None:
+        tags_params = set()
 
+    inF = sys.stdin
+    if args.log != "-" and  args.log != "":
+        inF = open(args.log, 'r')
+    
+    for line in inF:
+        parse_line(line, render_params, find_params, tags_params)
+
+    renderF = sys.stdout
+    if args.render != "-" and args.render != "":
+        renderF = open(args.render, 'w')
     # PrintCSV header
-    print('target')
+    renderF.write('#target\n')
+    for u in render_params:
+        renderF.write("%s\n" % u)
+    renderF.close()
 
-    for u in urls:
-        print("%s" % u)
+    if not args.find is None:
+        with open(args.find, 'w') as findF:
+            findF.write('#query\n')
+            for u in find_params:
+                findF.write("%s\n" % u)
+
+    if not args.tags is None:
+        with open(args.tags, 'w') as tagsF:
+            tagsF.write('#tags\n')
+            for u in tags_params:
+                tagsF.write("%s\n" % u)
 
 
 if __name__ == "__main__":

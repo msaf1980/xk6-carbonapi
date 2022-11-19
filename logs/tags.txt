@@ -1,0 +1,3 @@
+#tags
+/tags/autoComplete/tags?tagPrefix=EDI
+/tags/autoComplete/values?expr=name%3Dk8s.test-cl1.kube_*_labels&expr=namespace%3Dweb&tag=pod&limit=10000
