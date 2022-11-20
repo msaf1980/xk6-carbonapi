@@ -37,7 +37,6 @@ Then, install [xk6](https://github.com/grafana/xk6) and build your custom k6 bin
 Tune with variables
 ```
 ADDR          : "http://127.0.0.1:8888"
-TARGETS       : "render.txt"           # Test dataset
 
 DELAY         : 8000:12000     # 1 request per random (in range 8:12 seconds) for user, can used random value in range, pass like MIN:MAX or fixed like DELAY (in ms)
 DURATION      : "60s"  # test duration
@@ -47,7 +46,7 @@ USERS_1H_7D   : 0    # Number of users with queries in 1 hour range with from of
 USERS_1D_0    : 0    # Number of users with queries in 1 day range (disabled by default)
 USERS_1D_7D   : 0    # Number of users with queries in 1 day range with from offset with 7 days (disabled by default)
 USERS_7D_0    : 0    # Number of users with queries in 7 days range (disabled by default)
-USERS_7D_10M  : 0    # Number of users with queries in 7 days range with from offset with 10 minutes (disabled by default)
+USERS_7D_7D   : 0    # Number of users with queries in 7 days range with from offset with 7 days (disabled by default)
 USERS_30D_0   : 0    # Number of users with queries in 30 days range (disabled by default)
 USERS_90D_0   : 0    # Number of users with queries in 90 days range (disabled by default)
 USERS_365D_0  : 0    # Number of users with queries in 365 days range (disabled by default)
@@ -61,7 +60,8 @@ THRESHOLD_TIME_30D   : 10000 # 95% of requests in group  USERS_30D_0 should be b
 THRESHOLD_TIME_90D   : 15000 # 95% of requests in group  USERS_90D_0 should be below THRESHOLD_TIME_90D ms
 THRESHOLD_TIME_365D  : 20000 # 95% of requests in group  USERS_365D_0 should be below THRESHOLD_TIME_365D ms
 
-RENDER_FORMAT        : json  # Render format: json, protobuf or carbonapi_pb_v2 (for graphite-clickhouse), carbonapi_pb_v3
+RENDER               : "render.txt"           # Test render targets
+RENDER_FORMAT        : json                   # Render format: json, protobuf or carbonapi_pb_v2 (for graphite-clickhouse), carbonapi_pb_v3
 ```
 
 Pass CARBONAPI_USER and CARBONAPI_PASSWORD, if basic auth is needed

@@ -1,0 +1,3 @@
+#query
+&query=test.%2A
+&query=%2A.cpu&query=%2A.cpu0

@@ -7,27 +7,50 @@ import (
 	"strings"
 )
 
-type CarbonapiQuery struct {
-	render *Render
+var randInterval int64 = (3600*24 - 1) * 10 // (1 day - 1 s) * 10
+
+type State struct {
+	pos uint64
+
+	offset   int64 // offset (s) from now() for from
+	duration int64 // duration (s) (until - from)
 }
 
-func (b *CarbonapiQuery) Render() *Render {
-	if len(b.render.targets) == 0 {
-		panic(errors.New("render targets is empty"))
-	}
-	return b.render
+// failback to non existing interval (global)
+var defaultIntervals = &State{
+	offset:   0,
+	duration: 3600 * 24, // 1 day
 }
 
-func carbonapiQuery(path string, baseURL string) (*CarbonapiQuery, error) {
-	if baseURL == "" {
-		return nil, errors.New("base url not set")
+type Queries struct {
+	baseURL string
+
+	render_targets [][]string // render targets, must be encoded before put to slice
+	render_state   map[string]*State
+
+	find_queries [][]string // find queries
+	find_state   *State
+
+	tags_queries []string // tags queries
+	tags_state   *State
+}
+
+func newQueries() *Queries {
+	return &Queries{
+		render_targets: make([][]string, 0, 256),
+		render_state:   make(map[string]*State),
+		find_queries:   make([][]string, 0, 64),
+		find_state:     &State{},
+		tags_queries:   make([]string, 0, 64),
+		tags_state:     &State{},
 	}
-	file, err := os.Open(path)
+}
+
+func loadRenderTargets(targetPath string) error {
+	file, err := os.Open(targetPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	q := &CarbonapiQuery{render: newRender(baseURL, nil)}
 
 	scanner := bufio.NewScanner(file)
 	first := true
@@ -43,16 +66,12 @@ func carbonapiQuery(path string, baseURL string) (*CarbonapiQuery, error) {
 			continue
 		}
 		fields := strings.Split(line, "&")
-		var typ string
-		params := make([]string, 0, 1)
+		params := make([]string, 0, len(fields))
 		for _, field := range fields {
 			if len(field) == 0 {
 				continue
 			}
 			if strings.HasPrefix(field, "target=") {
-				if typ == "" {
-					typ = "target"
-				}
 				target := field[7:]
 				if len(target) > 0 {
 					params = append(params, target)
@@ -61,16 +80,102 @@ func carbonapiQuery(path string, baseURL string) (*CarbonapiQuery, error) {
 		}
 
 		if len(params) > 0 {
-			switch typ {
-			case "target":
-				q.render.targets = append(q.render.targets, params)
-			}
+			q.render_targets = append(q.render_targets, params)
 		}
 	}
+	return nil
+}
 
-	if len(q.render.targets) == 0 {
-		return nil, errors.New("empty file: " + path)
+func loadFindTargets(findPath string) error {
+	if findPath == "" {
+		return nil
+	}
+	file, err := os.Open(findPath)
+	if err != nil {
+		return err
 	}
 
-	return q, nil
+	scanner := bufio.NewScanner(file)
+	first := true
+	for scanner.Scan() {
+		line := scanner.Text()
+		if first {
+			first = false
+			if line == "query" {
+				continue
+			}
+		}
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+		fields := strings.Split(line, "&")
+		params := make([]string, 0, len(fields))
+		for _, field := range fields {
+			if len(field) == 0 {
+				continue
+			}
+			if strings.HasPrefix(field, "query=") {
+				query := field[6:]
+				if len(query) > 0 {
+					params = append(params, query)
+				}
+			}
+		}
+		if len(params) > 0 {
+			q.find_queries = append(q.find_queries, params)
+		}
+	}
+	return nil
+}
+
+func loadTagsTargets(tagsPath string) error {
+	if tagsPath == "" {
+		return nil
+	}
+	file, err := os.Open(tagsPath)
+	if err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(file)
+	first := true
+	for scanner.Scan() {
+		line := scanner.Text()
+		if first {
+			first = false
+			if line == "tags" {
+				continue
+			}
+		}
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+		if len(line) > 0 {
+			q.tags_queries = append(q.tags_queries, line)
+		}
+	}
+	return nil
+}
+
+func carbonapiQuery(targetPath, findPath, tagsPath, baseURL string) error {
+	if baseURL == "" {
+		return errors.New("base url not set")
+	}
+	q.baseURL = baseURL
+
+	if err := loadRenderTargets(targetPath); err != nil {
+		return err
+	}
+	if err := loadFindTargets(findPath); err != nil {
+		return err
+	}
+	if err := loadTagsTargets(tagsPath); err != nil {
+		return err
+	}
+
+	if len(q.render_targets) == 0 {
+		return errors.New("empty file: " + targetPath)
+	}
+
+	return nil
 }

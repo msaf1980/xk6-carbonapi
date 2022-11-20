@@ -7,13 +7,24 @@ export let options = {
 }
 
 export function setup() {
-    carbonapi.loadQueries("tests/carbonapi.txt", "http://127.0.0.1:8080");
+    carbonapi.loadQueries("tests/render.txt", "tests/find.txt", "tests/tags.txt", "http://127.0.0.1:8080");
     carbonapi.renderAddIntervalGroup("default", 3600, 0);
 }
 
 export default function() {
-    let t = carbonapi.renderNextGet("default", "json", 0);
-    console.log("JSON iter="+__ITER, "vu=" + __VU, "url=" + t[0], "name=" + t[1]);
-    let t_pb = carbonapi.renderNextPb_v3("default", "carbonapi_v3_pb", 0);
-    console.log("PB_V3 iter="+__ITER, "vu=" + __VU, "url=" + t_pb[0], "name=" + t_pb[1], "pb_v3=" + carbonapi.decodeRenderReqPb_v3(t_pb[2]));
+    // render
+    let r = carbonapi.renderNextGet("default", "json", 0);
+    console.log("JSON render iter="+__ITER, "vu=" + __VU, "url=" + r[0], "name=" + r[1]);
+    let r_pb = carbonapi.renderNextPb_v3("default", "carbonapi_v3_pb", 0);
+    console.log("PB_V3 remder iter="+__ITER, "vu=" + __VU, "url=" + r_pb[0], "name=" + r_pb[1], "pb_v3=" + carbonapi.decodeRenderReqPb_v3(r_pb[2]));
+
+    // find
+    let f = carbonapi.findNextGet("default", "json", 0);
+    console.log("JSON find iter="+__ITER, "vu=" + __VU, "url=" + f[0], "name=" + f[1]);
+    let f_pb = carbonapi.findNextPb_v3("default", "carbonapi_v3_pb", 0);
+    console.log("PB_V3 find iter="+__ITER, "vu=" + __VU, "url=" + f_pb[0], "name=" + f_pb[1], "pb_v3=" + carbonapi.decodeFindReqPb_v3(f_pb[2]));
+
+    // tags
+    let t = carbonapi.tagsNextGet("default", 0);
+    console.log("JSON tags iter="+__ITER, "vu=" + __VU, "url=" + t[0], "name=" + t[1]);
 }
