@@ -124,7 +124,7 @@ def timestamp_tz(param, tz):
 
 def parse_line(line, render_params, find_params=None, tags_params=None):
     json_line = json.loads(line)
-    if json_line.get('level') is None or json_line['level'] != 'INFO':
+    if json_line.get('level') is None or json_line['level'] not in ('INFO', 'ERROR'):
         return
     if json_line.get('logger') is None or json_line['logger'] != 'access':
         return
