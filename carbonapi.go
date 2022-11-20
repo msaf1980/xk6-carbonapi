@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	hurl "net/url"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -90,6 +91,21 @@ func (c *Carbonapi) RenderAddIntervalGroup(group string, duration, offset int64)
 	return nil
 }
 
+func renderName(group, format string, targets []string) string {
+	var sb stringutils.Builder
+	sb.Grow(512)
+	sb.WriteString("render format=")
+	sb.WriteString(format)
+	for _, target := range targets {
+		sb.WriteString(" target=")
+		sb.WriteString(target)
+	}
+	sb.WriteString(" label=")
+	sb.WriteString(group)
+
+	return sb.String()
+}
+
 func (c *Carbonapi) RenderNextGet(group, format string, offset int64) (url string, name string, err error) {
 	s, ok := q.render_state[group]
 	if !ok {
@@ -105,14 +121,12 @@ func (c *Carbonapi) RenderNextGet(group, format string, offset int64) (url strin
 	var sb stringutils.Builder
 	sb.Grow(512)
 	sb.WriteString(q.baseURL)
-	start := sb.Len()
 	sb.WriteString("/render/?format=")
 	sb.WriteString(format)
 	for _, target := range targets {
 		sb.WriteString("&target=")
-		sb.WriteString(target)
+		sb.WriteString(hurl.QueryEscape(target))
 	}
-	end := sb.Len()
 	sb.WriteString("&from=-")
 	sb.WriteInt(from, 10)
 	if until > 0 {
@@ -124,7 +138,7 @@ func (c *Carbonapi) RenderNextGet(group, format string, offset int64) (url strin
 	}
 
 	url = sb.String()
-	name = url[start:end] + "&label=" + group
+	name = renderName(group, format, targets)
 
 	return
 }
@@ -167,20 +181,11 @@ func (c *Carbonapi) RenderNextPb_v3(group, format string, offset int64) (url str
 	var sb stringutils.Builder
 	sb.Grow(512)
 	sb.WriteString(q.baseURL)
-	start := sb.Len()
 	sb.WriteString("/render/?format=")
 	sb.WriteString(format)
-	qEnd := sb.Len()
-	for _, target := range targets {
-		sb.WriteString("&target=")
-		sb.WriteString(target)
-	}
-	sb.WriteString("&label=")
-	sb.WriteString(group)
 
-	q := sb.String()
-	url = q[:qEnd]
-	name = q[start:]
+	url = sb.String()
+	name = renderName(group, format, targets)
 
 	reqBody, err = req_render_pb_v3(c.vu.Runtime(), targets, from, until)
 
@@ -195,27 +200,37 @@ func (c *Carbonapi) DecodeRenderReqPb_v3(reqBody *goja.ArrayBuffer) (req *pb_v3.
 	return
 }
 
-func (c *Carbonapi) FindNextGet(group, format string, offset int64) (url string, label string, err error) {
+func findName(group, format string, queries []string) string {
+	var sb stringutils.Builder
+	sb.Grow(512)
+	sb.WriteString("metrics/find format=")
+	sb.WriteString(format)
+	for _, query := range queries {
+		sb.WriteString(" query=")
+		sb.WriteString(query)
+	}
+	sb.WriteString(" label=")
+	sb.WriteString(group)
+
+	return sb.String()
+}
+
+func (c *Carbonapi) FindNextGet(group, format string, offset int64) (url string, name string, err error) {
 	pos := (atomic.AddUint64(&q.find_state.pos, 1) + uint64(offset) - 1) % uint64(len(q.find_queries))
 	queries := q.find_queries[pos]
 
 	var sb stringutils.Builder
 	sb.Grow(512)
 	sb.WriteString(q.baseURL)
-	start := sb.Len()
 	sb.WriteString("/metrics/find?format=")
 	sb.WriteString(format)
 	for _, query := range queries {
 		sb.WriteString("&query=")
-		sb.WriteString(query)
+		sb.WriteString(hurl.PathEscape(query))
 	}
-	end := sb.Len()
-	sb.WriteString("&label=")
-	sb.WriteString(group)
 
-	q := sb.String()
-	url = q[:end]
-	label = q[start:]
+	url = sb.String()
+	name = findName(group, format, queries)
 
 	return
 }
@@ -240,20 +255,11 @@ func (c *Carbonapi) FindNextPb_v3(group, format string, offset int64) (url strin
 	var sb stringutils.Builder
 	sb.Grow(512)
 	sb.WriteString(q.baseURL)
-	start := sb.Len()
 	sb.WriteString("/metrics/find?format=")
 	sb.WriteString(format)
-	qEnd := sb.Len()
-	for _, query := range queries {
-		sb.WriteString("&query=")
-		sb.WriteString(query)
-	}
-	sb.WriteString("&label=")
-	sb.WriteString(group)
 
-	q := sb.String()
-	url = q[:qEnd]
-	name = q[start:]
+	url = sb.String()
+	name = findName(group, format, queries)
 
 	reqBody, err = req_find_pb_v3(c.vu.Runtime(), queries)
 
@@ -268,18 +274,47 @@ func (c *Carbonapi) DecodeFindReqPb_v3(reqBody *goja.ArrayBuffer) (req *pb_v3.Mu
 	return
 }
 
-func (c *Carbonapi) TagsNextGet(group string, offset int64) (url string, label string, err error) {
+func tagsName(group, format string, query tagsQuery) string {
+	var sb stringutils.Builder
+	sb.Grow(512)
+	// strp /from start
+	sb.WriteString(query.url[1:])
+	sb.WriteString(" format=")
+	sb.WriteString(format)
+	for _, param := range query.params {
+		sb.WriteString(" ")
+		sb.WriteString(param.name)
+		sb.WriteString("='")
+		sb.WriteString(param.value)
+		sb.WriteRune('\'')
+	}
+	sb.WriteString(" label=")
+	sb.WriteString(group)
+
+	return sb.String()
+}
+
+func (c *Carbonapi) TagsNextGet(group, format string, offset int64) (url string, name string, err error) {
 	pos := (atomic.AddUint64(&q.tags_state.pos, 1) + uint64(offset) - 1) % uint64(len(q.tags_queries))
 	query := q.tags_queries[pos]
 
 	var sb stringutils.Builder
 	sb.Grow(512)
 	sb.WriteString(q.baseURL)
-	start := sb.Len()
-	sb.WriteString(query)
+	sb.WriteString(query.url)
+	for i, param := range query.params {
+		if i == 0 {
+			sb.WriteRune('?')
+		} else {
+			sb.WriteRune('&')
+		}
+		sb.WriteString(param.name)
+		sb.WriteRune('=')
+		sb.WriteString(hurl.QueryEscape(param.value))
+	}
 
 	url = sb.String()
-	label = url[start:] + "&label=" + group
+	name = tagsName(group, format, query)
 
 	return
 }

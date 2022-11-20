@@ -3,8 +3,11 @@ package carbonapi
 import (
 	"bufio"
 	"errors"
+	hurl "net/url"
 	"os"
 	"strings"
+
+	"github.com/msaf1980/go-stringutils"
 )
 
 var randInterval int64 = (3600*24 - 1) * 10 // (1 day - 1 s) * 10
@@ -22,6 +25,16 @@ var defaultIntervals = &State{
 	duration: 3600 * 24, // 1 day
 }
 
+type queryParam struct {
+	name  string
+	value string
+}
+
+type tagsQuery struct {
+	url    string
+	params []queryParam
+}
+
 type Queries struct {
 	baseURL string
 
@@ -31,7 +44,7 @@ type Queries struct {
 	find_queries [][]string // find queries
 	find_state   *State
 
-	tags_queries []string // tags queries
+	tags_queries []tagsQuery // tags queries
 	tags_state   *State
 }
 
@@ -41,7 +54,7 @@ func newQueries() *Queries {
 		render_state:   make(map[string]*State),
 		find_queries:   make([][]string, 0, 64),
 		find_state:     &State{},
-		tags_queries:   make([]string, 0, 64),
+		tags_queries:   make([]tagsQuery, 0, 64),
 		tags_state:     &State{},
 	}
 }
@@ -74,7 +87,11 @@ func loadRenderTargets(targetPath string) error {
 			if strings.HasPrefix(field, "target=") {
 				target := field[7:]
 				if len(target) > 0 {
-					params = append(params, target)
+					t, err := hurl.PathUnescape(target)
+					if err != nil {
+						t = target
+					}
+					params = append(params, t)
 				}
 			}
 		}
@@ -117,7 +134,11 @@ func loadFindTargets(findPath string) error {
 			if strings.HasPrefix(field, "query=") {
 				query := field[6:]
 				if len(query) > 0 {
-					params = append(params, query)
+					q, err := hurl.PathUnescape(query)
+					if err != nil {
+						q = query
+					}
+					params = append(params, q)
 				}
 			}
 		}
@@ -151,7 +172,24 @@ func loadTagsTargets(tagsPath string) error {
 			continue
 		}
 		if len(line) > 0 {
-			q.tags_queries = append(q.tags_queries, line)
+			url, args, n := stringutils.Split2(line, "?")
+			if n != 2 {
+				return errors.New("cant extract tags url: " + line)
+			}
+			params := strings.Split(args, "&")
+			tParams := make([]queryParam, 0, len(params))
+			for _, v := range params {
+				name, p, n := stringutils.Split2(v, "=")
+				if n != 2 {
+					return errors.New("cant extract tags param: " + v)
+				}
+				param, err := hurl.PathUnescape(p)
+				if err != nil {
+					param = p
+				}
+				tParams = append(tParams, queryParam{name: name, value: param})
+			}
+			q.tags_queries = append(q.tags_queries, tagsQuery{url: url, params: tParams})
 		}
 	}
 	return nil

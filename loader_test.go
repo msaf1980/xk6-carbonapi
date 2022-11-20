@@ -32,9 +32,9 @@ func TestModule_carbonapiQuery(t *testing.T) {
 	assert.Equal(t, q.baseURL, baseURL)
 
 	// verify render targets
-	assert.Equal(t, q.render_targets, [][]string{
+	assert.Equal(t, [][]string{
 		{
-			"test.nginx.web1.url1_get.latencyTotal.p50",
+			"test.nginx.web*.url1_get.latencyTotal.p50",
 		},
 		{
 			"test.nginx.web1.url2_get.latencyTotal.p50",
@@ -44,15 +44,28 @@ func TestModule_carbonapiQuery(t *testing.T) {
 			"test.nginx.web1.url3_get.latencyTotal.p50",
 			"test.nginx.web2.url3_get.latencyTotal.p99",
 		},
-	})
+	}, q.render_targets)
 	// verify find queries
-	assert.Equal(t, q.find_queries, [][]string{
-		{"test.%2A"},
-		{"%2A.cpu", "%2A.cpu0"},
-	})
+	assert.Equal(t, [][]string{
+		{"test.*"},
+		{"*.cpu", "*.cpu0"},
+	}, q.find_queries)
 	// verify tags queries
-	assert.Equal(t, q.tags_queries, []string{
-		"/tags/autoComplete/tags?tagPrefix=DB",
-		"/tags/autoComplete/values?expr=name%3Dk8s.test-cl1.kube_%2A_labels&expr=namespace%3Dweb&tag=pod&limit=10000",
-	})
+	assert.Equal(t, []tagsQuery{
+		{
+			url: "/tags/autoComplete/tags",
+			params: []queryParam{
+				{name: "tagPrefix", value: "DB"},
+			},
+		},
+		{
+			url: "/tags/autoComplete/values",
+			params: []queryParam{
+				{name: "expr", value: "name=k8s.test-cl1.kube_*_labels"},
+				{name: "expr", value: "namespace=web"},
+				{name: "tag", value: "pod"},
+				{name: "limit", value: "10000"},
+			},
+		},
+	}, q.tags_queries)
 }

@@ -38,28 +38,28 @@ func TestRender_RenderNextGetJSON(t *testing.T) {
 	}{
 		{
 			name:     "1 Hour (0)",
-			wantURL:  baseURL + "/render/?format=json&target=test1.*&from=-3600s&until=now",
-			wantName: "/render/?format=json&target=test1.*",
+			wantURL:  baseURL + "/render/?format=json&target=test1.%2A&from=-3600s&until=now",
+			wantName: "render format=json target=test1.*",
 		},
 		{
 			name:     "7 Days (1h)",
-			wantURL:  baseURL + "/render/?format=json&target=test1.*&from=-608400s&until=-3600s",
-			wantName: "/render/?format=json&target=test1.*",
+			wantURL:  baseURL + "/render/?format=json&target=test1.%2A&from=-608400s&until=-3600s",
+			wantName: "render format=json target=test1.*",
 		},
 		{
 			name:     "1 Hour (0)",
-			wantURL:  baseURL + "/render/?format=json&target=test2.*&target=test3.*.test4&from=-3600s&until=now",
-			wantName: "/render/?format=json&target=test2.*&target=test3.*.test4",
+			wantURL:  baseURL + "/render/?format=json&target=test2.%2A&target=test3.%2A.test4&from=-3600s&until=now",
+			wantName: "render format=json target=test2.* target=test3.*.test4",
 		},
 		{
 			name:     "7 Days (2h)",
-			wantURL:  baseURL + "/render/?format=json&target=test1.*&from=-612000s&until=-7200s",
-			wantName: "/render/?format=json&target=test1.*",
+			wantURL:  baseURL + "/render/?format=json&target=test1.%2A&from=-612000s&until=-7200s",
+			wantName: "render format=json target=test1.*",
 		},
 		{
 			name:     "7 Days (2h)",
-			wantURL:  baseURL + "/render/?format=json&target=test2.*&target=test3.*.test4&from=-612000s&until=-7200s",
-			wantName: "/render/?format=json&target=test2.*&target=test3.*.test4",
+			wantURL:  baseURL + "/render/?format=json&target=test2.%2A&target=test3.%2A.test4&from=-612000s&until=-7200s",
+			wantName: "render format=json target=test2.* target=test3.*.test4",
 		},
 	}
 	for n, tt := range tests {
@@ -71,8 +71,9 @@ func TestRender_RenderNextGetJSON(t *testing.T) {
 				if gotURL != tt.wantURL {
 					t.Errorf("Carbonapi.RenderNextGet(\"%s\", \"json\").url got\n'%s'\nbut want\n'%s'", tt.name, gotURL, tt.wantURL)
 				}
-				if gotName != tt.wantName+"&label="+tt.name {
-					t.Errorf("Carbonapi.RenderNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", tt.name, gotName, tt.wantName+"&label="+tt.name)
+				wantName := tt.wantName + " label=" + tt.name
+				if gotName != wantName {
+					t.Errorf("Carbonapi.RenderNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", tt.name, gotName, wantName)
 				}
 			}
 		})
@@ -112,10 +113,9 @@ func TestRender_RenderNext_pb_v3(t *testing.T) {
 		wantFetchReq pb_v3.MultiFetchRequest
 	}{
 		{
-			name:    "1 Hour (0)",
-			wantURL: baseURL + "/render/?format=carbonapi_v3_pb",
-			// &target=test1.*&from=-3600s&until=now",
-			wantName: "/render/?format=carbonapi_v3_pb&target=test1.*",
+			name:     "1 Hour (0)",
+			wantURL:  baseURL + "/render/?format=carbonapi_v3_pb",
+			wantName: "render format=carbonapi_v3_pb target=test1.*",
 			wantFetchReq: pb_v3.MultiFetchRequest{
 				Metrics: []pb_v3.FetchRequest{
 					{
@@ -130,7 +130,7 @@ func TestRender_RenderNext_pb_v3(t *testing.T) {
 		{
 			name:     "7 Days (1h)",
 			wantURL:  baseURL + "/render/?format=carbonapi_v3_pb",
-			wantName: "/render/?format=carbonapi_v3_pb&target=test1.*",
+			wantName: "render format=carbonapi_v3_pb target=test1.*",
 			wantFetchReq: pb_v3.MultiFetchRequest{
 				Metrics: []pb_v3.FetchRequest{
 					{
@@ -143,10 +143,9 @@ func TestRender_RenderNext_pb_v3(t *testing.T) {
 			},
 		},
 		{
-			name:    "1 Hour (0)",
-			wantURL: baseURL + "/render/?format=carbonapi_v3_pb",
-			// &target=test2.*&target=test3.*.test4&from=-3600s&until=now",
-			wantName: "/render/?format=carbonapi_v3_pb&target=test2.*&target=test3.*.test4",
+			name:     "1 Hour (0)",
+			wantURL:  baseURL + "/render/?format=carbonapi_v3_pb",
+			wantName: "render format=carbonapi_v3_pb target=test2.* target=test3.*.test4",
 			wantFetchReq: pb_v3.MultiFetchRequest{
 				Metrics: []pb_v3.FetchRequest{
 					{
@@ -167,7 +166,7 @@ func TestRender_RenderNext_pb_v3(t *testing.T) {
 		{
 			name:     "7 Days (2h)",
 			wantURL:  baseURL + "/render/?format=carbonapi_v3_pb",
-			wantName: "/render/?format=carbonapi_v3_pb&target=test1.*",
+			wantName: "render format=carbonapi_v3_pb target=test1.*",
 			wantFetchReq: pb_v3.MultiFetchRequest{
 				Metrics: []pb_v3.FetchRequest{
 					{
@@ -182,7 +181,7 @@ func TestRender_RenderNext_pb_v3(t *testing.T) {
 		{
 			name:     "7 Days (2h)",
 			wantURL:  baseURL + "/render/?format=carbonapi_v3_pb",
-			wantName: "/render/?format=carbonapi_v3_pb&target=test2.*&target=test3.*.test4",
+			wantName: "render format=carbonapi_v3_pb target=test2.* target=test3.*.test4",
 			wantFetchReq: pb_v3.MultiFetchRequest{
 				Metrics: []pb_v3.FetchRequest{
 					{
@@ -210,8 +209,9 @@ func TestRender_RenderNext_pb_v3(t *testing.T) {
 				if gotURL != tt.wantURL {
 					t.Errorf("Carbonapi.RenderNextPb_v3(\"%s\").url got\n'%s'\nbut want\n'%s'", tt.name, gotURL, tt.wantURL)
 				}
-				if gotName != tt.wantName+"&label="+tt.name {
-					t.Errorf("Carbonapi.RenderNextPb_v3(\"%s\").name got\n'%s'\nbut want\n'%s'", tt.name, gotName, tt.wantName+"&label="+tt.name)
+				wantName := tt.wantName + " label=" + tt.name
+				if gotName != wantName {
+					t.Errorf("Carbonapi.RenderNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", tt.name, gotName, wantName)
 				}
 				if gotFetchReq, err := m.DecodeRenderReqPb_v3(reqBody); err == nil {
 					assert.Equal(t, tt.wantFetchReq, *gotFetchReq, "Carbonapi.RenderNextPb_v3(\"%s\").reqBody", tt.name)

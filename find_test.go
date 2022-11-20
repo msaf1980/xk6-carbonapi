@@ -32,16 +32,16 @@ func TestRender_FindNextGetJSON(t *testing.T) {
 		wantName string
 	}{
 		{
-			wantURL:  baseURL + "/metrics/find?format=json&query=test1.*",
-			wantName: "/metrics/find?format=json&query=test1.*",
+			wantURL:  baseURL + "/metrics/find?format=json&query=test1.%2A",
+			wantName: "metrics/find format=json query=test1.*",
 		},
 		{
-			wantURL:  baseURL + "/metrics/find?format=json&query=test2.*&query=test3.*.test4",
-			wantName: "/metrics/find?format=json&query=test2.*&query=test3.*.test4",
+			wantURL:  baseURL + "/metrics/find?format=json&query=test2.%2A&query=test3.%2A.test4",
+			wantName: "metrics/find format=json query=test2.* query=test3.*.test4",
 		},
 		{
-			wantURL:  baseURL + "/metrics/find?format=json&query=test1.*",
-			wantName: "/metrics/find?format=json&query=test1.*",
+			wantURL:  baseURL + "/metrics/find?format=json&query=test1.%2A",
+			wantName: "metrics/find format=json query=test1.*",
 		},
 	}
 	for n, tt := range tests {
@@ -53,8 +53,9 @@ func TestRender_FindNextGetJSON(t *testing.T) {
 				if gotURL != tt.wantURL {
 					t.Errorf("Carbonapi.FindNextGet(\"%s\", \"json\").url got\n'%s'\nbut want\n'%s'", "find", gotURL, tt.wantURL)
 				}
-				if gotName != tt.wantName+"&label=find" {
-					t.Errorf("Carbonapi.FindNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", "find", gotName, tt.wantName+"&label=find")
+				wantName := tt.wantName + " label=find"
+				if gotName != wantName {
+					t.Errorf("Carbonapi.FindNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", "find", gotName, wantName)
 				}
 			}
 		})
@@ -90,21 +91,21 @@ func TestRender_FindNext_pb_v3(t *testing.T) {
 	}{
 		{
 			wantURL:  baseURL + "/metrics/find?format=carbonapi_v3_pb",
-			wantName: "/metrics/find?format=carbonapi_v3_pb&query=test1.*",
+			wantName: "metrics/find format=carbonapi_v3_pb query=test1.*",
 			wantGlobReq: pb_v3.MultiGlobRequest{
 				Metrics: []string{"test1.*"},
 			},
 		},
 		{
 			wantURL:  baseURL + "/metrics/find?format=carbonapi_v3_pb",
-			wantName: "/metrics/find?format=carbonapi_v3_pb&query=test2.*&query=test3.*.test4",
+			wantName: "metrics/find format=carbonapi_v3_pb query=test2.* query=test3.*.test4",
 			wantGlobReq: pb_v3.MultiGlobRequest{
 				Metrics: []string{"test2.*", "test3.*.test4"},
 			},
 		},
 		{
 			wantURL:  baseURL + "/metrics/find?format=carbonapi_v3_pb",
-			wantName: "/metrics/find?format=carbonapi_v3_pb&query=test1.*",
+			wantName: "metrics/find format=carbonapi_v3_pb query=test1.*",
 			wantGlobReq: pb_v3.MultiGlobRequest{
 				Metrics: []string{"test1.*"},
 			},
@@ -119,8 +120,9 @@ func TestRender_FindNext_pb_v3(t *testing.T) {
 				if gotURL != tt.wantURL {
 					t.Errorf("Carbonapi.FindNextPb_v3(\"%s\").url got\n'%s'\nbut want\n'%s'", "find", gotURL, tt.wantURL)
 				}
-				if gotName != tt.wantName+"&label=find" {
-					t.Errorf("Carbonapi.RenderNextPb_v3(\"%s\").name got\n'%s'\nbut want\n'%s'", "find", gotName, tt.wantName+"&label=find")
+				wantName := tt.wantName + " label=find"
+				if gotName != wantName {
+					t.Errorf("Carbonapi.FindNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", "find", gotName, wantName)
 				}
 				if gotFetchReq, err := m.DecodeFindReqPb_v3(reqBody); err == nil {
 					assert.Equal(t, tt.wantGlobReq, *gotFetchReq, "Carbonapi.RenderNextPb_v3(\"%s\").reqBody", "find")

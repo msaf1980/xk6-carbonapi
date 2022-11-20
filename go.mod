@@ -7,7 +7,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-graphite/protocol v1.0.0
 	github.com/google/go-cmp v0.5.8 // indirect
-	github.com/msaf1980/go-stringutils v0.0.11
+	github.com/msaf1980/go-stringutils v0.1.3
 	github.com/onsi/gomega v1.16.0 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/stretchr/testify v1.8.0
