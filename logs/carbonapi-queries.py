@@ -130,6 +130,9 @@ def parse_line(line, render_params, find_params=None, tags_params=None):
         return
     if  json_line.get('data') is None:
         return
+    if json_line['data']['http_code'] == "400":
+        # skip bad requests
+        return
 
     if json_line['data']['handler'] == 'render' and json_line['data']['url'].startswith('/render'):
         if json_line['data'].get('targets') is None:

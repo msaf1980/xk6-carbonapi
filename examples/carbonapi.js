@@ -494,7 +494,7 @@ export function api_find_pb_v3() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => r.status === 200 || r.status === 400 || r.status === 404,
+        'success': (r) => r.status === 200 || r.status === 404,
     });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
