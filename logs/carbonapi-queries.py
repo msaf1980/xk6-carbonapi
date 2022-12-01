@@ -82,10 +82,18 @@ else:
     def timestamp(dt):
         return time.mktime(dt.timetuple())
 
-
 from_p = re.compile('from=[0-9]+')
 until_p = re.compile('until=[0-9]+')
 now_p = re.compile('now=[0-9]+')
+
+
+def format_exception_loc():
+    _, _, tb = sys.exc_info()
+    f = tb.tb_frame
+    lineno = tb.tb_lineno
+    filename = f.f_code.co_filename
+    return "{}:{}".format(os.path.basename(filename), lineno)
+
 
 class URLStat:
     def __init__(self, url, time_from, time_until):
@@ -148,7 +156,7 @@ def parse_line(line, render_params, find_params=None, tags_params=None):
                 if url not in render_params:
                     render_params.add(url)
         except Exception as e:
-            sys.stderr.write("%s: %s" % (str(e), line))
+            sys.stderr.write("%s at %s: %s" % (str(e), format_exception_loc(), line))
 
     elif not find_params is None and json_line['data']['handler'] == 'find' and json_line['data']['url'].startswith('/metrics/find'):
         if json_line['data'].get('metrics') is None:
@@ -161,7 +169,7 @@ def parse_line(line, render_params, find_params=None, tags_params=None):
                 if url not in find_params:
                     find_params.add(url)
         except Exception as e:
-            sys.stderr.write("%s: %s" % (str(e), line))
+            sys.stderr.write("%s at %s: %s" % (str(e), format_exception_loc(), line))
 
     elif not tags_params is None and json_line['data']['handler'] == 'tags':
         try:
@@ -175,7 +183,7 @@ def parse_line(line, render_params, find_params=None, tags_params=None):
                 if uri not in tags_params:
                     tags_params.add(uri)
         except Exception as e:
-            sys.stderr.write("%s: %s" % (str(e), line))
+            sys.stderr.write("%s at %s: %s" % (str(e), format_exception_loc(), line))
 
 
 def parse_cmdline():
