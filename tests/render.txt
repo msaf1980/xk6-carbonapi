@@ -1,5 +1,5 @@
 target
 #target=comment
-&target=test.nginx.web1.url1_get.latencyTotal.p50
+&target=test.nginx.web%2A.url1_get.latencyTotal.p50
 &target=test.nginx.web1.url2_get.latencyTotal.p50&target=test.nginx.web2.url2_get.latencyTotal.p95
 target=test.nginx.web1.url3_get.latencyTotal.p50&target=test.nginx.web2.url3_get.latencyTotal.p99

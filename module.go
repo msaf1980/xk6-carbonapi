@@ -7,22 +7,28 @@ import (
 	"go.k6.io/k6/js/modules"
 )
 
+type (
+	// RootModule is the global module instance that will create module
+	// instances for each VU.
+	RootModule struct{}
+)
+
+var (
+	r modules.Module   = &RootModule{}
+	_ modules.Instance = &Carbonapi{}
+)
+
 func init() {
-	modules.Register("k6/x/carbonapi", New())
+	modules.Register("k6/x/carbonapi", r)
 }
 
-type Module struct {
-	q *CarbonapiQuery
+// New returns a pointer to a new RootModule instance.
+func New() *RootModule {
+	return &RootModule{}
 }
 
-func (m *Module) LoadQueries(path, baseURL string) (*CarbonapiQuery, error) {
-	var err error
-
-	m.q, err = carbonapiQuery(path, baseURL)
-
-	return m.q, err
-}
-
-func New() *Module {
-	return &Module{}
+// NewModuleInstance implements the modules.Module interface to return
+// a new instance for each VU.
+func (*RootModule) NewModuleInstance(vu modules.VU) modules.Instance {
+	return &Carbonapi{vu: vu}
 }

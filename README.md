@@ -2,14 +2,11 @@
 
 This is a [k6](https://go.k6.io/k6) extension using the [xk6](https://github.com/grafana/xk6) system.
 
-| :exclamation: This is a proof of concept, isn't supported by the k6 team, and may break in the future. USE AT YOUR OWN RISK! |
 | ---------------------------------------------------------------------------------------------------------------------------- |
 
 This projects implements query generator for [graphite API](https://graphite-api.readthedocs.io/en/latest/api.html)
 |
 | ---------------------------------------------------------------------------------------------------------------------------- |
-
-Predominantly because of the above this is very unlikely to ever get in k6 in it's current form, so please don't open issues :D. 
 
 ## Build
 
@@ -37,10 +34,11 @@ Then, install [xk6](https://github.com/grafana/xk6) and build your custom k6 bin
 
 # example
 
-Tune with variables
+Tune with env variables K6_STATSITE_ADDR, K6_CARBONAPI_PARAMS (conyains other variables, separated with spaces), CARBONAPI_USER,  CARBONAPI_PASSWORD
 ```
-ADDR          : "http://127.0.0.1:8888"
-QUERIES       : "carbonapi.txt"           # Test dataset
+export K6_STATSITE_ADDR="http://127.0.0.1:8888"
+
+export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_1H_0=10"
 
 DELAY         : 8000:12000     # 1 request per random (in range 8:12 seconds) for user, can used random value in range, pass like MIN:MAX or fixed like DELAY (in ms)
 DURATION      : "60s"  # test duration
@@ -50,7 +48,7 @@ USERS_1H_7D   : 0    # Number of users with queries in 1 hour range with from of
 USERS_1D_0    : 0    # Number of users with queries in 1 day range (disabled by default)
 USERS_1D_7D   : 0    # Number of users with queries in 1 day range with from offset with 7 days (disabled by default)
 USERS_7D_0    : 0    # Number of users with queries in 7 days range (disabled by default)
-USERS_7D_10M  : 0    # Number of users with queries in 7 days range with from offset with 10 minutes (disabled by default)
+USERS_7D_7D   : 0    # Number of users with queries in 7 days range with from offset with 7 days (disabled by default)
 USERS_30D_0   : 0    # Number of users with queries in 30 days range (disabled by default)
 USERS_90D_0   : 0    # Number of users with queries in 90 days range (disabled by default)
 USERS_365D_0  : 0    # Number of users with queries in 365 days range (disabled by default)
@@ -63,6 +61,11 @@ THRESHOLD_TIME_7D    :  7000 # 95% of requests in groups USERS_7D_0, USERS_7D_10
 THRESHOLD_TIME_30D   : 10000 # 95% of requests in group  USERS_30D_0 should be below THRESHOLD_TIME_30D ms
 THRESHOLD_TIME_90D   : 15000 # 95% of requests in group  USERS_90D_0 should be below THRESHOLD_TIME_90D ms
 THRESHOLD_TIME_365D  : 20000 # 95% of requests in group  USERS_365D_0 should be below THRESHOLD_TIME_365D ms
+
+THRESHOLD_FAIL_PCNT       : 0.1 # 0.1% Failed requests maximum percent
+
+RENDER               : "render.txt"           # Test render targets
+RENDER_FORMAT        : json                   # Render format: json, protobuf or carbonapi_pb_v2 (for graphite-clickhouse), carbonapi_pb_v3
 ```
 
 Pass CARBONAPI_USER and CARBONAPI_PASSWORD, if basic auth is needed
@@ -72,20 +75,49 @@ $ export CARBONAPI_USER="username" CARBONAPI_PASSWORD="password"
 
 For different statistic for each query group use statsite output (identifical with statsd, but tagged metrics not supported and some taggs can be appended to metric with K6_STATSITE_TAG_APPEND)
 
- ```shell
+```shell
 $
-export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging."
-./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite carbonapi.js
-  ```
-  
-For long duration tests with limited memory usage can be run sequent
+export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_NAMESPACE="graphite.loadtest.k6.graphite_clickhouse.staging."
+export K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label'
+export K6_OUT="statsite,clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
+
+export K6_CLICKHOUSE_TESTNAME="`rpm -q carbonapi`"
+export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
+export K6_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
+export K6_CARBONAPI_PARAMS="${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
+
+../k6 run carbonapi.js
+```
+
+For graphite-web testing (with render carbonapi_v3_pb format)
 
 ```shell
 $
-export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging." 
-for i in `seq 1 24`; do 
-echo "Execute step ${i}" ;
-./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite carbonapi.js ;
-[ "$?" == "0" ] || break ;
-done
-  ```
+export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_NAMESPACE="graphite.loadtest.k6.graphite_clickhouse.staging."
+export K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label'
+export K6_OUT="statsite,clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
+
+export K6_CARBONAPI_ADDR="http://localhost:9090"
+export K6_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse`"
+export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
+export K6_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
+export K6_CARBONAPI_PARAMS="RENDER=render_gch.txt ${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
+
+../k6 run carbonapi.js
+```
+
+
+If you need store results in Clickhouse database (see https://github.com/msaf1980/xk6-output-clickhouse for details)
+For example you can pass argumets 
+```
+--out "clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
+```
+or env variable
+```
+K6_OUT="clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60" 
+```
+
+For custom test name pass K6_CLICKHOUSE_TESTNAME env var, for example
+```
+K6_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse`"
+```

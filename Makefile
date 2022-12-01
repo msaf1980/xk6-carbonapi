@@ -1,6 +1,7 @@
-K6_VERSION="v0.39.0"
-XK6_GETENV_VERSION="v0.0.4"
-XK6_STATSITE_VERSION="v0.1.0"
+K6_VERSION ?= "v0.41.0"
+XK6_GETENV_VERSION ?= "v0.0.5"
+XK6_STATSITE_VERSION ?= "v0.2.0"
+XK6_OUT_CH_VERSION ?= "v0.0.7"
 
 MAKEFLAGS += --silent
 
@@ -25,7 +26,7 @@ prep:
 
 ## build: Builds a custom 'k6' with the local extension. 
 build:
-	xk6 build ${K6_VERSION} --with $(shell go list -m)=. --with github.com/msaf1980/xk6-getenv@${XK6_GETENV_VERSION} --with github.com/msaf1980/xk6-statsite@${XK6_STATSITE_VERSION}
+	xk6 build ${K6_VERSION} --with $(shell go list -m)=. --with github.com/msaf1980/xk6-getenv@${XK6_GETENV_VERSION} --with github.com/msaf1980/xk6-statsite@${XK6_STATSITE_VERSION} --with github.com/msaf1980/xk6-output-clickhouse@${XK6_OUT_CH_VERSION}
 
 ## format: Applies Go formatting to code.
 format:

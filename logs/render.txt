@@ -1,0 +1,2 @@
+#target
+&target=minSeries%28test.metric.%2A%29
