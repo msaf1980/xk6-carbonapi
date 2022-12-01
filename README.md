@@ -40,6 +40,8 @@ export K6_STATSITE_ADDR="http://127.0.0.1:8888"
 
 export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_1H_0=10"
 
+Default values:
+
 DELAY         : 8000:12000     # 1 request per random (in range 8:12 seconds) for user, can used random value in range, pass like MIN:MAX or fixed like DELAY (in ms)
 DURATION      : "60s"  # test duration
 
