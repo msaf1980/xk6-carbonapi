@@ -1,6 +1,6 @@
 import encoding from 'k6/encoding';
 import http from 'k6/http';
-import { check, sleep } from 'k6';
+import { check, sleep, fail } from 'k6';
 
 import { Trend } from 'k6/metrics';
 
@@ -10,9 +10,9 @@ import getenv from "k6/x/getenv";
 import { htmlReport } from "./k6-reporter.js"; //https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js
 import { textSummary } from "./k6-summary.js"; // https://jslib.k6.io/k6-summary/0.0.1/index.js
 
-import { randomInt, getIntOrdered2 } from './rutils.js'
+import { randomInt, getIntOrdered2, getEnvParams, extractEnvParams, dumpMap } from './rutils.js'
 
-let ADDR = getenv.getString(`${__ENV.ADDR}`, "http://127.0.0.1:8888");
+let ADDR = getenv.getEnv("K6_CARBONAPI_ADDR", "http://127.0.0.1:8888");
 let USER = getenv.getEnv("CARBONAPI_USER", "");
 let PASSWORD = getenv.getEnv("CARBONAPI_PASSWORD", "");
 let headers = {};
@@ -22,55 +22,58 @@ if (USER.length > 0 && PASSWORD.length > 0) {
     headers["Authorization"] = `Basic ${encodedCredentials}`;
 }
 
-let DELAY = getIntOrdered2(`${__ENV.DELAY}`, "8000:12000"); // 1 request per random  in range 8:12 s for user
-let DURATION = getenv.getString(`${__ENV.DURATION}`, "60s"); // test duration
+let K6_CARBONAPI_PARAMS=getEnvParams(getenv.getEnv("K6_CARBONAPI_PARAMS", ""))
+
+let DELAY = getIntOrdered2(extractEnvParams(K6_CARBONAPI_PARAMS, "DELAY"), "8000:12000"); // 1 request per random  in range 8:12 s for user
+let DURATION = getenv.getString(extractEnvParams(K6_CARBONAPI_PARAMS, "DURATION"), "60s"); // test duration
 
 // /render
-let RENDER = getenv.getString(`${__ENV.RENDER}`, "render.txt");
-let RENDER_FORMAT = getenv.getString(`${__ENV.RENDER_FORMAT}`, "json");
+let RENDER = getenv.getString(extractEnvParams(K6_CARBONAPI_PARAMS, "RENDER"), "render.txt");
+let RENDER_FORMAT = getenv.getString(extractEnvParams(K6_CARBONAPI_PARAMS, "RENDER_FORMAT"), "json");
 let F_API_RENDER = 'api_render_get'
 if (RENDER_FORMAT == 'carbonapi_v3_pb') {
     F_API_RENDER = 'api_render_pb_v3'
 }
 
-let THRESHOLD_TIME_1H = getenv.getInt(`${__ENV.THRESHOLD_TIME_1H}`, 3000)
-let USERS_1H_0 = getenv.getInt(`${__ENV.USERS_1H_0}`, 10);
-let USERS_1H_7D = getenv.getInt(`${__ENV.USERS_1H_7D}`, 0);
+let THRESHOLD_TIME_1H = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_1H"), 3000)
+let USERS_1H_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_1H_0"), 10);
+let USERS_1H_7D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_1H_7D"), 0);
 
-let THRESHOLD_TIME_1D = getenv.getInt(`${__ENV.THRESHOLD_TIME_1D}`, 5000)
-let USERS_1D_0 = getenv.getInt(`${__ENV.USERS_1D_0}`, 0);
-let USERS_1D_7D = getenv.getInt(`${__ENV.USERS_1D_7D}`, 0);
+let THRESHOLD_TIME_1D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_1D"), 5000)
+let USERS_1D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_1D_0"), 0);
+let USERS_1D_7D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_1D_7D"), 0);
 
-let THRESHOLD_TIME_7D = getenv.getInt(`${__ENV.THRESHOLD_TIME_7D}`, 7000)
-let USERS_7D_0 = getenv.getInt(`${__ENV.USERS_7D_0}`, 0);
-let USERS_7D_7D = getenv.getInt(`${__ENV.USERS_7D_7D}`, 0);
+let THRESHOLD_TIME_7D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_7D"), 7000)
+let USERS_7D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_7D_0"), 0);
+let USERS_7D_7D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_7D_7D"), 0);
 
-let THRESHOLD_TIME_30D = getenv.getInt(`${__ENV.THRESHOLD_TIME_30D}`, 10000)
-let USERS_30D_0 = getenv.getInt(`${__ENV.USERS_30D_0}`, 0);
+let THRESHOLD_TIME_30D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_30D"), 10000)
+let USERS_30D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_30D_0"), 0);
 
-let THRESHOLD_TIME_90D = getenv.getInt(`${__ENV.THRESHOLD_TIME_90D}`, 15000)
-let USERS_90D_0 = getenv.getInt(`${__ENV.USERS_90D_0}`, 0);
+let THRESHOLD_TIME_90D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_90D"), 15000)
+let USERS_90D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_90D_0"), 0);
 
-let THRESHOLD_TIME_365D = getenv.getInt(`${__ENV.THRESHOLD_TIME_365D}`, 20000)
-let USERS_365D_0 = getenv.getInt(`${__ENV.USERS_365D_0}`, 0);
+let THRESHOLD_TIME_365D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_365D"), 20000)
+let USERS_365D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_365D_0"), 0);
 
-let THRESHOLD_FAIL_PCNT = getenv.getFloat(`${__ENV.THRESHOLD_FAIL_PCNT}`, 0.1) / 100.0
+let THRESHOLD_FAIL_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT"), 0.1) / 100.0
+let THRESHOLD_TIME_CONNECT = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_CONNECT"), 200)
 
 // /metrics/find
-let FIND = getenv.getEnv("FIND", "find.txt");
-let FIND_FORMAT = getenv.getEnv("FIND_FORMAT", "json");
+let FIND = getenv.getString(extractEnvParams(K6_CARBONAPI_PARAMS, "FIND"), "find.txt");
+let FIND_FORMAT = getenv.getString(extractEnvParams(K6_CARBONAPI_PARAMS, "FIND_FORMAT"), "json");
 let F_API_FIND = 'api_find_get'
 if (FIND_FORMAT == 'carbonapi_v3_pb') {
     F_API_FIND = 'api_find_pb_v3'
 }
-let THRESHOLD_TIME_FIND = getenv.getInt(`${__ENV.THRESHOLD_TIME_FIND}`, 3000);
-let USERS_FIND = getenv.getInt(`${__ENV.USERS_FIND}`, 0);
+let THRESHOLD_TIME_FIND = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_FIND"), 3000);
+let USERS_FIND = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_FIND"), 0);
 
 // /tags/autoComplete
-let TAGS = getenv.getEnv("TAGS", "tags.txt");
+let TAGS = getenv.getEnv(extractEnvParams(K6_CARBONAPI_PARAMS, "TAGS"), "tags.txt");
 let F_API_TAGS = 'api_tags_get'
-let THRESHOLD_TIME_TAGS = getenv.getInt(`${__ENV.THRESHOLD_TIME_TAGS}`, 3000);
-let USERS_TAGS = getenv.getInt(`${__ENV.USERS_TAGS}`, 0);
+let THRESHOLD_TIME_TAGS = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_TAGS"), 3000);
+let USERS_TAGS = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_TAGS"), 0);
 
 // additional metrics
 let httpSendBytesTrend = Trend("http_req_send_bytes");
@@ -208,7 +211,7 @@ if (USERS_365D_0 > 0) {
 
 export const options = {
     thresholds: {
-        'http_req_failed{label:find}': [
+        'checks{label:find}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -222,7 +225,7 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_failed{label:tags}': [
+        'checks{label:tags}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -236,7 +239,7 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_failed{label:render_1h_offset_0}': [
+        'checks{label:render_1h_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -250,7 +253,7 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_failed{label:render_1h_offset_7d}': [
+        'checks{label:render_1h_offset_7d}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -264,7 +267,7 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_failed{label:render_1d_offset_0}': [
+        'checks{label:render_1d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -278,7 +281,7 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_failed{label:render_1d_offset_7d}': [
+        'checks{label:render_1d_offset_7d}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -292,7 +295,7 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_failed{label:render_7d_offset_0}': [
+        'checks{label:render_7d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -306,7 +309,7 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_failed{label:render_7d_offset_7d}': [
+        'checks{label:render_7d_offset_7d}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -320,7 +323,7 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_failed{label:render_30d_offset_0}': [
+        'checks{label:render_30d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -334,7 +337,7 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_failed{label:render_90d_offset_0}': [
+        'checks{label:render_90d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -348,7 +351,7 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'http_req_failed{label:render_365d_offset_0}': [
+        'checks{label:render_365d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
@@ -364,7 +367,7 @@ export const options = {
         ],
         'http_req_connecting': [
             {
-                threshold: 'p(95)<200', // 95% of requests connection time should be below 200ms
+                threshold: `p(95)<${THRESHOLD_TIME_CONNECT}`, // 95% of requests connection time should be below 200ms
                 abortOnFail: true,
                 delayAbortEval: '10s',
             },
@@ -395,9 +398,12 @@ export function setup() {
     } else if (USER.length > 0 && PASSWORD.length > 0) {
         console.log(`enable basic auth with user ${USER}`);
     }
+    if (K6_CARBONAPI_PARAMS.size > 0) {
+        fail('unknown parameters: ' + dumpMap(K6_CARBONAPI_PARAMS));
+    }
 
     console.log('started with delay ' + DELAY[0] + ':' + DELAY[1] + " ms");
-    console.log('render format: ' + RENDER_FORMAT);
+    console.log('render format: ' + RENDER_FORMAT + '(' + RENDER + '), find format: ' + FIND_FORMAT  + '(' + FIND + '), tags (' + TAGS + ')');
     carbonapi.loadQueries(RENDER, FIND, TAGS, ADDR);
     carbonapi.renderAddIntervalGroup('render_1h_offset_0', 3600, 0);
     carbonapi.renderAddIntervalGroup('render_1h_offset_7d', 3600, 3600 * 24 * 7);

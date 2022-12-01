@@ -66,7 +66,7 @@ def timestamp_tz(param, tz):
     return int(timestamp(datetime.fromtimestamp(t, tz)))
 
 
-def parse_line(line, render_params, find_params=None, tags_params=None):
+def parse_line(line, render_params, render_cache):
     json_line = json.loads(line)
     if json_line.get('level') is None or json_line['level'] not in ('INFO', 'ERROR'):
         return
@@ -74,21 +74,46 @@ def parse_line(line, render_params, find_params=None, tags_params=None):
 
     if json_line['logger'] == 'render.pb3parser':
         target = json_line.get('target')
-        if target is None:
+        request_id = json_line.get('request_id')
+        if target is None or request_id is None:
             return
 
         dt = dateutil.parser.parse(json_line['timestamp'])
         json_line['time'] = int(timestamp(dt))
 
-        try:
-            url = '&target=' + quote_plus(target)
+        # can't get status code at this step, so save in cache
+        render_cache[request_id] = target
 
-            if url not in render_params:
-                render_params.add(url)
-        except Exception as e:
-            sys.stderr.write("%s: %s" % (str(e), line))
+        # try:
+        #     url = '&target=' + quote_plus(target)
 
-    # elif json_line['logger'] == 'http':
+        #     if url not in render_params:
+        #         render_params.add(url)
+        # except Exception as e:
+        #     sys.stderr.write("%s: %s" % (str(e), line))
+
+    elif json_line['logger'] == 'http':
+        url = json_line['url']
+        if url is None:
+            return
+        if url.startswith("/render"):
+            if json_line['status'] == '400':
+                return
+            request_id = json_line.get('request_id')
+            target = None
+            if not request_id is None:
+                target = render_cache.get(request_id)
+            if target is None:
+                return
+            del render_cache[request_id]
+
+            try:
+                url = '&target=' + quote_plus(target)
+
+                if url not in render_params:
+                    render_params.add(url)
+            except Exception as e:
+                sys.stderr.write("%s: %s" % (str(e), line))
 
 
 def parse_cmdline():
@@ -126,8 +151,9 @@ def main():
     if args.log != "-" and  args.log != "":
         inF = open(args.log, 'r')
     
+    render_cache = dict()
     for line in inF:
-        parse_line(line, render_params, find_params, tags_params)
+        parse_line(line, render_params, render_cache)
 
     renderF = sys.stdout
     if args.render != "-" and args.render != "":

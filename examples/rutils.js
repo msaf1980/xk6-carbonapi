@@ -59,3 +59,27 @@ export function getIntOrdered2(content, defaultValue, delim = ':') {
 
     return splitIntOrdered2(content, defaultValue, delim)
 }
+
+export function getEnvParams(text) {
+    let map = new Map();
+    let vs = text.split(" ");
+    for (const s of vs) {
+        let v = splitString2(s, "=");
+        map.set(v[0], v[1])
+    }
+    return map;
+}
+
+export function extractEnvParams(map, key) {
+    let v = map.get(key)
+    map.delete(key)
+    return v
+}
+
+export function dumpMap(map) {
+    var obj = {}
+    map.forEach(function(v, k){
+        obj[k] = v
+    })
+    return JSON.stringify(obj)
+}

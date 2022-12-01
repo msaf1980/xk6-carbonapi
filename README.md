@@ -34,9 +34,11 @@ Then, install [xk6](https://github.com/grafana/xk6) and build your custom k6 bin
 
 # example
 
-Tune with variables
+Tune with env variables K6_STATSITE_ADDR, K6_CARBONAPI_PARAMS (conyains other variables, separated with spaces), CARBONAPI_USER,  CARBONAPI_PASSWORD
 ```
-ADDR          : "http://127.0.0.1:8888"
+export K6_STATSITE_ADDR="http://127.0.0.1:8888"
+
+export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_1H_0=10"
 
 DELAY         : 8000:12000     # 1 request per random (in range 8:12 seconds) for user, can used random value in range, pass like MIN:MAX or fixed like DELAY (in ms)
 DURATION      : "60s"  # test duration
@@ -75,16 +77,33 @@ For different statistic for each query group use statsite output (identifical wi
 
 ```shell
 $
-export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging."
-./k6 run -e ADDR="http://localhost:8889" -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite examples/carbonapi.js
+export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_NAMESPACE="graphite.loadtest.k6.graphite_clickhouse.staging."
+export K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label'
+export K6_OUT="statsite,clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
+
+export K6_CLICKHOUSE_TESTNAME="`rpm -q carbonapi`"
+export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
+export K6_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
+export K6_CARBONAPI_PARAMS="${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
+
+../k6 run carbonapi.js
 ```
 
 For graphite-web testing (with render carbonapi_v3_pb format)
 
 ```shell
 $
-export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging."
-./k6 run -e ADDR="http://localhost:9090" -e RENDER_FORMAT=carbonapi_v3_pb -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite examples/carbonapi.js
+export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_NAMESPACE="graphite.loadtest.k6.graphite_clickhouse.staging."
+export K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label'
+export K6_OUT="statsite,clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
+
+export K6_CARBONAPI_ADDR="http://localhost:9090"
+export K6_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse`"
+export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
+export K6_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
+export K6_CARBONAPI_PARAMS="RENDER=render_gch.txt ${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
+
+../k6 run carbonapi.js
 ```
 
 
@@ -100,5 +119,5 @@ K6_OUT="clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_ex
 
 For custom test name pass K6_CLICKHOUSE_TESTNAME env var, for example
 ```
-K6_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse` `date '+%D %T %Z'`"
+K6_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse`"
 ```
