@@ -424,6 +424,7 @@ export function api_render_get() {
         headers: headers,
         tags: { name: url[1], label: group },
     });
+    // console.log("api_render_get: " + resp.status +  " k6 Error : " + resp.error  + " k6 Error code: " + resp.error_code + "after a duration of: " + resp.timings.duration + "made up of: Blocked " + resp.timings.blocked +  " Connecting " + resp.timings.connecting + " Sending " + resp.timings.sending + " Waiting: " + resp.timings.waiting + " Receiving: " + resp.timings.receiving);
     check(resp, {
         'success': (r) => r.status === 200 || r.status === 400 || r.status === 404,
     });
@@ -447,9 +448,23 @@ export function api_render_pb_v3() {
         headers: headers,
         tags: { name: url[1], label: group },
     });
+    // console.log("api_render_pb_v3: " + resp.status +  " k6 Error : " + resp.error  + " k6 Error code: " + resp.error_code + " after a duration of: " + resp.timings.duration + "made up of: Blocked " + resp.timings.blocked +  " Connecting " + resp.timings.connecting + " Sending " + resp.timings.sending + " Waiting: " + resp.timings.waiting + " Receiving: " + resp.timings.receiving);
     check(resp, {
         'success': (r) => r.status === 200 || r.status === 400 || r.status === 404,
     });
+    // if (
+    //     !check(resp, {
+    //         'success': (r) => { 
+    //             if (r.status == 200 || r.status == 400 || r.status == 404) { 
+    //                 return true
+    //             } else {
+    //                 return false                    
+    //             }
+    //         },
+    //     })
+    // ) {
+    //     fail('success');
+    // }
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
@@ -494,7 +509,7 @@ export function api_find_pb_v3() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => r.status === 200 || r.status === 404,
+        'success': (r) => r.status === 200|| r.status === 400 || r.status === 404,
     });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
@@ -519,6 +534,21 @@ export function api_tags_get() {
     check(resp, {
         'success': (r) => r.status === 200 || r.status === 400 || r.status === 404,
     });
+    // if (
+    //     !check(resp, {
+    //         'success': (r) => { 
+    //             if (r.status != 200 && r.status != 400 && r.status != 404) { 
+    //                 console.log("api_tags_get: " + r.status +  " k6 Error : " + r.error  + " k6 Error code: " + r.error_code + "after a duration of: " + r.timings.duration + "made up of: Blocked " + r.timings.blocked +  " Connecting " + r.timings.connecting + " Sending " + r.timings.sending + " Waiting: " + r.timings.waiting + " Receiving: " + r.timings.receiving);
+    //                 return false
+    //             } else {
+    //                 return true
+    //             }
+    //         },
+    //     })
+    // ) {
+    //     fail('success');
+    // }
+ 
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
@@ -528,8 +558,8 @@ export function api_tags_get() {
 // This will export to HTML as filename "result.html" AND also stdout using the text summary
 
 export function handleSummary(data) {
-  return {
-    "result.html": htmlReport(data),
-    stdout: textSummary(data, { indent: " ", enableColors: true }),
-  };
+    return {
+        "result.html": htmlReport(data),
+        stdout: textSummary(data, { indent: " ", enableColors: true }),
+    };
 }

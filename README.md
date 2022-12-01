@@ -60,6 +60,8 @@ THRESHOLD_TIME_30D   : 10000 # 95% of requests in group  USERS_30D_0 should be b
 THRESHOLD_TIME_90D   : 15000 # 95% of requests in group  USERS_90D_0 should be below THRESHOLD_TIME_90D ms
 THRESHOLD_TIME_365D  : 20000 # 95% of requests in group  USERS_365D_0 should be below THRESHOLD_TIME_365D ms
 
+THRESHOLD_FAIL_PCNT       : 0.1 # 0.1% Failed requests maximum percent
+
 RENDER               : "render.txt"           # Test render targets
 RENDER_FORMAT        : json                   # Render format: json, protobuf or carbonapi_pb_v2 (for graphite-clickhouse), carbonapi_pb_v3
 ```
@@ -84,7 +86,9 @@ $
 export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging."
 ./k6 run -e ADDR="http://localhost:9090" -e RENDER_FORMAT=carbonapi_v3_pb -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite examples/carbonapi.js
 ```
-If you need store results in Clickhouse database see https://github.com/msaf1980/xk6-output-clickhouse
+
+
+If you need store results in Clickhouse database (see https://github.com/msaf1980/xk6-output-clickhouse for details)
 For example you can pass argumets 
 ```
 --out "clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
@@ -92,4 +96,9 @@ For example you can pass argumets
 or env variable
 ```
 K6_OUT="clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60" 
+```
+
+For custom test name pass K6_CLICKHOUSE_TESTNAME env var, for example
+```
+K6_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse` `date '+%D %T %Z'`"
 ```
