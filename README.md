@@ -84,3 +84,12 @@ $
 export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label' K6_STATSITE_NAMESPACE="DevOps.loadtest.k6.graphite.staging."
 ./k6 run -e ADDR="http://localhost:9090" -e RENDER_FORMAT=carbonapi_v3_pb -e USERS_1H_0=300 -e USERS_1D_0=50 -e USERS_7D_0=5 -e USERS_30D_0=5 -e DELAY=1 -e DURATION=1h --out json=result.json.gz --out statsite examples/carbonapi.js
 ```
+If you need store results in Clickhouse database see https://github.com/msaf1980/xk6-output-clickhouse
+For example you can pass argumets 
+```
+--out "clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
+```
+or env variable
+```
+K6_OUT="clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60" 
+```
