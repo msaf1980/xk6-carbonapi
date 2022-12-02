@@ -68,12 +68,14 @@ if (FIND_FORMAT == 'carbonapi_v3_pb') {
 }
 let THRESHOLD_TIME_FIND = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_FIND"), 3000);
 let USERS_FIND = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_FIND"), 0);
+let THRESHOLD_FAIL_FIND_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_FIND_PCNT"), 0.1) / 100.0
 
 // /tags/autoComplete
 let TAGS = getenv.getEnv(extractEnvParams(K6_CARBONAPI_PARAMS, "TAGS"), "tags.txt");
 let F_API_TAGS = 'api_tags_get'
 let THRESHOLD_TIME_TAGS = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_TAGS"), 3000);
 let USERS_TAGS = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_TAGS"), 0);
+let THRESHOLD_FAIL_TAGS_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_TAGS_PCNT"), 0.1) / 100.0
 
 // additional metrics
 let httpSendBytesTrend = Trend("http_req_send_bytes");
@@ -213,7 +215,7 @@ export const options = {
     thresholds: {
         'checks{label:find}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate<${THRESHOLD_FAIL_FIND_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -227,7 +229,7 @@ export const options = {
         ],
         'checks{label:tags}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate<${THRESHOLD_FAIL_TAGS_PCNT}`, // http errors should be less than 0.1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },

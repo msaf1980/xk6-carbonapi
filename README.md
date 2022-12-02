@@ -55,6 +55,9 @@ USERS_30D_0   : 0    # Number of users with queries in 30 days range (disabled b
 USERS_90D_0   : 0    # Number of users with queries in 90 days range (disabled by default)
 USERS_365D_0  : 0    # Number of users with queries in 365 days range (disabled by default)
 
+USERS_FIND    : 0    # Number of users with queries for /metrics/find (disabled by default)
+USERS_TAGS    : 0    # Number of users with queries for /tags/autoComplete (disabled by default)
+
 Thresolds for autostop
 
 THRESHOLD_TIME_1H    :  3000 # 95% of requests in groups USERS_1H_0, USERS_1H_7D should be below THRESHOLD_TIME_1H ms
@@ -64,7 +67,13 @@ THRESHOLD_TIME_30D   : 10000 # 95% of requests in group  USERS_30D_0 should be b
 THRESHOLD_TIME_90D   : 15000 # 95% of requests in group  USERS_90D_0 should be below THRESHOLD_TIME_90D ms
 THRESHOLD_TIME_365D  : 20000 # 95% of requests in group  USERS_365D_0 should be below THRESHOLD_TIME_365D ms
 
-THRESHOLD_FAIL_PCNT       : 0.1 # 0.1% Failed requests maximum percent
+THRESHOLD_TIME_FIND  : 3000 # 95% of requests in group  USERS_FIND should be below THRESHOLD_TIME_FIND ms
+THRESHOLD_TIME_TAGS  : 3000 # 95% of requests in group  USERS_TAGS should be below THRESHOLD_TIME_TAGS ms
+
+THRESHOLD_FAIL_PCNT            : 0.1 # 0.1% Failed requests maximum percent
+
+THRESHOLD_FAIL_FIND_PCNT       : 0.1 # 0.1% Failed requests maximum percent
+THRESHOLD_FAIL_TAGS_PCNT       : 0.1 # 0.1% Failed requests maximum percent
 
 RENDER               : "render.txt"           # Test render targets
 RENDER_FORMAT        : json                   # Render format: json, protobuf or carbonapi_pb_v2 (for graphite-clickhouse), carbonapi_pb_v3
@@ -79,14 +88,14 @@ For different statistic for each query group use statsite output (identifical wi
 
 ```shell
 $
-export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_NAMESPACE="graphite.loadtest.k6.graphite_clickhouse.staging."
+export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_NAMESPACE="Graphite.loadtest.k6.carbonapi.staging."
 export K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label'
 export K6_OUT="statsite,clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
 
 export K6_CLICKHOUSE_TESTNAME="`rpm -q carbonapi`"
-export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
+export K6_CARBONAPI_PARAMS="DELAY=1 DURATION=1h USERS_FIND=1 USERS_TAGS=1 USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
 export K6_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
-export K6_CARBONAPI_PARAMS="${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
+export K6_CARBONAPI_PARAMS="FIND=find.txt TAGS=tags.txt ${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
 
 ../k6 run carbonapi.js
 ```
@@ -95,15 +104,15 @@ For graphite-web testing (with render carbonapi_v3_pb format)
 
 ```shell
 $
-export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_NAMESPACE="graphite.loadtest.k6.graphite_clickhouse.staging."
+export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_NAMESPACE="Graphite.loadtest.k6.graphite_clickhouse.staging."
 export K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label'
 export K6_OUT="statsite,clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
 
 export K6_CARBONAPI_ADDR="http://localhost:9090"
 export K6_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse`"
-export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
+export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb FIND_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_FIND=1 USERS_TAGS=1 USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
 export K6_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
-export K6_CARBONAPI_PARAMS="RENDER=render_gch.txt ${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
+export K6_CARBONAPI_PARAMS="RENDER=render_gch.txt FIND=find.txt TAGS=tags.txt ${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
 
 ../k6 run carbonapi.js
 ```
@@ -122,4 +131,13 @@ K6_OUT="clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_ex
 For custom test name pass K6_CLICKHOUSE_TESTNAME env var, for example
 ```
 K6_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse`"
+```
+
+If run in one terminals with  non-default and default  parameters, don't forget unset env vars (or all and set it again), like
+
+```shell
+$
+unset K6_CARBONAPI_ADDR K6_CARBONAPI_PARAMS
+unset K6_CLICKHOUSE_TESTNAME K6_CLICKHOUSE_PARAMS
+unset K6_STATSITE_ADDR K6_STATSITE_NAMESPACE K6_STATSITE_BUFFER_SIZE
 ```
