@@ -52,8 +52,11 @@ USERS_1D_7D   : 0    # Number of users with queries in 1 day range with from off
 USERS_7D_0    : 0    # Number of users with queries in 7 days range (disabled by default)
 USERS_7D_7D   : 0    # Number of users with queries in 7 days range with from offset with 7 days (disabled by default)
 USERS_30D_0   : 0    # Number of users with queries in 30 days range (disabled by default)
+USERS_30D_7D  : 0    # Number of users with queries in 30 days range with from offset with 7 days (disabled by default)
 USERS_90D_0   : 0    # Number of users with queries in 90 days range (disabled by default)
+USERS_90D_7D  : 0    # Number of users with queries in 90 days range with from offset with 7 days (disabled by default)
 USERS_365D_0  : 0    # Number of users with queries in 365 days range (disabled by default)
+USERS_365D_7D : 0    # Number of users with queries in 365 days range with from offset with 7 days (disabled by default)
 
 USERS_FIND    : 0    # Number of users with queries for /metrics/find (disabled by default)
 USERS_TAGS    : 0    # Number of users with queries for /tags/autoComplete (disabled by default)

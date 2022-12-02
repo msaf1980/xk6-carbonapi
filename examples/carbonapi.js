@@ -49,12 +49,15 @@ let USERS_7D_7D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_7D_
 
 let THRESHOLD_TIME_30D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_30D"), 10000)
 let USERS_30D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_30D_0"), 0);
+let USERS_30D_7D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_30D_7D"), 0);
 
 let THRESHOLD_TIME_90D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_90D"), 15000)
 let USERS_90D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_90D_0"), 0);
+let USERS_90D_7D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_90D_7D"), 0);
 
 let THRESHOLD_TIME_365D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_365D"), 20000)
 let USERS_365D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_365D_0"), 0);
+let USERS_365D_7D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_365D_7D"), 0);
 
 let THRESHOLD_FAIL_PCNT_1H = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_1H"), 1.0) / 100.0
 let THRESHOLD_403_PCNT_1H = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_PCNT_1H"), 1.0) / 100.0
@@ -205,6 +208,17 @@ if (USERS_30D_0 > 0) {
     }
 }
 
+if (USERS_30D_7D > 0) {
+    scenarios["render_30d_offset_7d"] = {
+        executor: 'constant-vus',
+        exec: F_API_RENDER,
+        vus: USERS_30D_7D,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_30d_offset_7d' },
+    }
+}
+
 if (USERS_90D_0 > 0) {
     scenarios["render_90d_offset_0"] = {
         executor: 'constant-vus',
@@ -213,6 +227,17 @@ if (USERS_90D_0 > 0) {
         duration: DURATION,
         gracefulStop: '10s',
         env: { GROUP: 'render_90d_offset_0' },
+    }
+}
+
+if (USERS_90D_7D > 0) {
+    scenarios["render_90d_offset_7d"] = {
+        executor: 'constant-vus',
+        exec: F_API_RENDER,
+        vus: USERS_90D_7D,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_90d_offset_7d' },
     }
 }
 
@@ -227,237 +252,311 @@ if (USERS_365D_0 > 0) {
     }
 }
 
+if (USERS_365D_7D > 0) {
+    scenarios["render_365d_offset_7d"] = {
+        executor: 'constant-vus',
+        exec: F_API_RENDER,
+        vus: USERS_365D_7D,
+        duration: DURATION,
+        gracefulStop: '10s',
+        env: { GROUP: 'render_365d_offset_7d' },
+    }
+}
+
 export const options = {
     thresholds: {
         'checks{status:fail, label:find}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_FIND}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:find}': [
             {
                 threshold: `rate<${THRESHOLD_403_FIND_PCNT}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'http_req_duration{label:find}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_FIND}`, // 95% of requests should be below THRESHOLD_TIME_FIND ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:fail, label:tags}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_TAGS}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:tags}': [
             {
                 threshold: `rate<${THRESHOLD_403_TAGS_PCNT}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'http_req_duration{label:tags}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_TAGS}`, // 95% of requests should be below THRESHOLD_TIME_TAGS ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:fail, label:render_1h_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_1H}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:render_1h_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_403_PCNT_1D}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'http_req_duration{label:render_1h_offset_0}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_1H}`, // 95% of requests should be below THRESHOLD_TIME_1H ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:fail, label:render_1h_offset_7d}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_1H}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:render_1h_offset_7d}': [
             {
                 threshold: `rate<${THRESHOLD_403_PCNT_1H}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],        
         'http_req_duration{label:render_1h_offset_7d}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_1H}`, // 95% of requests should be below THRESHOLD_TIME_1H ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:fail, label:render_1d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_1D}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:render_1d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_403_PCNT_1D}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],        
         'http_req_duration{label:render_1d_offset_0}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_1D}`, // 95% of requests should be below THRESHOLD_TIME_1D ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:fail, label:render_1d_offset_7d}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_1D}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:render_1d_offset_7d}': [
             {
                 threshold: `rate<${THRESHOLD_403_PCNT_1D}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],        
         'http_req_duration{label:render_1d_offset_7d}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_1D}`, // 95% of requests should be below THRESHOLD_TIME_1D ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:fail, label:render_7d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_7D}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:render_7d_offset_7d}': [
             {
                 threshold: `rate<${THRESHOLD_403_PCNT_7D}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ], 
         'http_req_duration{label:render_7d_offset_0}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_7D}`, // 95% of requests should be below THRESHOLD_TIME_1D ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:fail, label:render_7d_offset_7d}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_7D}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:render_7d_offset_7d}': [
             {
                 threshold: `rate<${THRESHOLD_403_PCNT_7D}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ], 
         'http_req_duration{label:render_7d_offset_7d}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_7D}`, // 95% of requests should be below THRESHOLD_TIME_7D ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:fail, label:render_30d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_30D}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:render_30d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_403_PCNT_30D}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ], 
         'http_req_duration{label:render_30d_offset_0}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_30D}`, // 95% of requests should be below THRESHOLD_TIME_30D ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
+            },
+        ],
+        'checks{status:fail, label:render_30d_offset_7d}': [
+            {
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_30D}`, // http success should be greater or equal than
+                abortOnFail: true,
+                delayAbortEval: '120s',
+            },
+        ],
+        'checks{status:forbidden, label:render_30d_offset_7d}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_30D}`, // http 403 errors should be less than
+                abortOnFail: true,
+                delayAbortEval: '120s',
+            },
+        ], 
+        'http_req_duration{label:render_30d_offset_7d}': [
+            {
+                threshold: `p(95)<${THRESHOLD_TIME_30D}`, // 95% of requests should be below THRESHOLD_TIME_30D ms
+                abortOnFail: true,
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:fail, label:render_90d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_90D}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:render_90d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_403_PCNT_90D}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],        
         'http_req_duration{label:render_90d_offset_0}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_90D}`, // 95% of requests should be below THRESHOLD_TIME_90D ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
+            },
+        ],
+        'checks{status:fail, label:render_90d_offset_7d}': [
+            {
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_90D}`, // http success should be greater or equal than
+                abortOnFail: true,
+                delayAbortEval: '120s',
+            },
+        ],
+        'checks{status:forbidden, label:render_90d_offset_7d}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_90D}`, // http 403 errors should be less than
+                abortOnFail: true,
+                delayAbortEval: '120s',
+            },
+        ],        
+        'http_req_duration{label:render_90d_offset_7d}': [
+            {
+                threshold: `p(95)<${THRESHOLD_TIME_90D}`, // 95% of requests should be below THRESHOLD_TIME_90D ms
+                abortOnFail: true,
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:fail, label:render_365d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_FAIL_PCNT_365D}`, // http success should be greater or equal than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'checks{status:forbidden, label:render_365d_offset_0}': [
             {
                 threshold: `rate<${THRESHOLD_403_PCNT_365D}`, // http 403 errors should be less than
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
             },
         ],
         'http_req_duration{label:render_365d_offset_0}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_365D}`, // 95% of requests should be below THRESHOLD_TIME_365D ms
                 abortOnFail: true,
-                delayAbortEval: '30s',
+                delayAbortEval: '120s',
+            },
+        ],
+        'checks{status:fail, label:render_365d_offset_7d}': [
+            {
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_365D}`, // http success should be greater or equal than
+                abortOnFail: true,
+                delayAbortEval: '120s',
+            },
+        ],
+        'checks{status:forbidden, label:render_365d_offset_7d}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_365D}`, // http 403 errors should be less than
+                abortOnFail: true,
+                delayAbortEval: '120s',
+            },
+        ],
+        'http_req_duration{label:render_365d_offset_7d}': [
+            {
+                threshold: `p(95)<${THRESHOLD_TIME_365D}`, // 95% of requests should be below THRESHOLD_TIME_365D ms
+                abortOnFail: true,
+                delayAbortEval: '120s',
             },
         ],
         'http_req_connecting': [
@@ -567,6 +666,17 @@ export const options = {
         'http_req_duration{label:render_30d_offset_0, status:503}': ['max>=0'],
         'http_req_duration{label:render_30d_offset_0, status:504}': ['max>=0'],
 
+        'http_req_duration{label:render_30d_offset_7d, status:200}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_7d, status:400}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_7d, status:401}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_7d, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_7d, status:404}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_7d, status:500}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_7d, status:501}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_7d, status:502}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_7d, status:503}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_7d, status:504}': ['max>=0'],
+
         'http_req_duration{label:render_90d_offset_0, status:200}': ['max>=0'],
         'http_req_duration{label:render_90d_offset_0, status:400}': ['max>=0'],
         'http_req_duration{label:render_90d_offset_0, status:401}': ['max>=0'],
@@ -578,6 +688,17 @@ export const options = {
         'http_req_duration{label:render_90d_offset_0, status:503}': ['max>=0'],
         'http_req_duration{label:render_90d_offset_0, status:504}': ['max>=0'],
 
+        'http_req_duration{label:render_90d_offset_7d, status:200}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_7d, status:400}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_7d, status:401}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_7d, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_7d, status:404}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_7d, status:500}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_7d, status:501}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_7d, status:502}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_7d, status:503}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_7d, status:504}': ['max>=0'],
+
         'http_req_duration{label:render_365d_offset_0, status:200}': ['max>=0'],
         'http_req_duration{label:render_365d_offset_0, status:400}': ['max>=0'],
         'http_req_duration{label:render_365d_offset_0, status:401}': ['max>=0'],
@@ -588,7 +709,18 @@ export const options = {
         'http_req_duration{label:render_365d_offset_0, status:502}': ['max>=0'],
         'http_req_duration{label:render_365d_offset_0, status:503}': ['max>=0'],
         'http_req_duration{label:render_365d_offset_0, status:504}': ['max>=0'],
-        
+
+        'http_req_duration{label:render_365d_offset_7d, status:200}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_7d, status:400}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_7d, status:401}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_7d, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_7d, status:404}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_7d, status:500}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_7d, status:501}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_7d, status:502}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_7d, status:503}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_7d, status:504}': ['max>=0'],
+
         // 'http_req_duration{status:429, label:find}': ['max>=0'],
         // 'http_req_duration{status:499, label:find}': ['max>=0'], // timeout
     },
@@ -623,8 +755,11 @@ export function setup() {
     carbonapi.renderAddIntervalGroup('render_7d_offset_0', 3600 * 24 * 7, 0);
     carbonapi.renderAddIntervalGroup('render_7d_offset_7d', 3600 * 24, 600);
     carbonapi.renderAddIntervalGroup('render_30d_offset_0', 3600 * 24 * 30, 0);
+    carbonapi.renderAddIntervalGroup('render_30d_offset_7d', 3600 * 24 * 30, 3600 * 24 * 7);
     carbonapi.renderAddIntervalGroup('render_90d_offset_0', 3600 * 24 * 90, 0);
+    carbonapi.renderAddIntervalGroup('render_90d_offset_7d', 3600 * 24 * 90, 3600 * 24 * 7);
     carbonapi.renderAddIntervalGroup('render_365d_offset_0', 3600 * 24 * 365, 0);
+    carbonapi.renderAddIntervalGroup('render_365d_offset_7d', 3600 * 24 * 365, 3600 * 24 * 7);
 }
 
 export function api_render_get() {
