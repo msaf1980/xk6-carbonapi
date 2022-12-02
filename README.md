@@ -70,10 +70,28 @@ THRESHOLD_TIME_365D  : 20000 # 95% of requests in group  USERS_365D_0 should be 
 THRESHOLD_TIME_FIND  : 3000 # 95% of requests in group  USERS_FIND should be below THRESHOLD_TIME_FIND ms
 THRESHOLD_TIME_TAGS  : 3000 # 95% of requests in group  USERS_TAGS should be below THRESHOLD_TIME_TAGS ms
 
-THRESHOLD_OK_PCNT            : 99 # 99% Failed requests maximum percent
+THRESHOLD_FAIL_PCNT_1H         : 1 # 1% Failed requests maximum percent
+THRESHOLD_FAIL_PCNT_1D         : 1 # 1% Failed requests maximum percent
+THRESHOLD_FAIL_PCNT_7D         : 1 # 1% Failed requests maximum percent
+THRESHOLD_FAIL_PCNT_30D        : 1 # 1% Failed requests maximum percent
+THRESHOLD_FAIL_PCNT_90D        : 1 # 1% Failed requests maximum percent
+THRESHOLD_FAIL_PCNT_365D       : 1 # 1% Failed requests maximum percent
 
-THRESHOLD_OK_FIND_PCNT       : 99 # 99% Failed requests maximum percent
-THRESHOLD_OK_TAGS_PCNT       : 99 # 99% Failed requests maximum percent
+THRESHOLD_403_PCNT_FIND       : 1 # 1% Failed requests maximum percent
+THRESHOLD_403_PCNT_TAGS       : 1 # 1% Failed requests maximum percent
+
+THRESHOLD_403_PCNT_1H         : 1 # 1% Failed requests maximum percent
+THRESHOLD_403_PCNT_1D         : 1 # 1% Failed requests maximum percent
+THRESHOLD_403_PCNT_7D         : 1 # 1% Failed requests maximum percent
+THRESHOLD_403_PCNT_30D        : 1 # 1% Failed requests maximum percent
+THRESHOLD_403_PCNT_90D        : 1 # 1% Failed requests maximum percent
+THRESHOLD_403_PCNT_365D       : 1 # 1% Failed requests maximum percent
+
+THRESHOLD_403_PCNT_FIND       : 1 # 1% Failed requests maximum percent
+THRESHOLD_403_PCNT_TAGS       : 1 # 1% Failed requests maximum percent
+
+THRESHOLD_TIME_CONNECT        : 200 # 95% of requests connection time must be < THRESHOLD_TIME_CONNECT ms
+THRESHOLD_ERROR_PCNT_NON_HTTP:     : 1 # 1% Failed requests maximum percent
 
 RENDER               : "render.txt"           # Test render targets
 RENDER_FORMAT        : json                   # Render format: json, protobuf or carbonapi_pb_v2 (for graphite-clickhouse), carbonapi_pb_v3

@@ -2,7 +2,7 @@ import encoding from 'k6/encoding';
 import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
 
-import { Trend } from 'k6/metrics';
+import { Trend, Rate } from 'k6/metrics';
 
 import carbonapi from "k6/x/carbonapi";
 import getenv from "k6/x/getenv";
@@ -56,8 +56,18 @@ let USERS_90D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_90D
 let THRESHOLD_TIME_365D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_365D"), 20000)
 let USERS_365D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_365D_0"), 0);
 
-let THRESHOLD_OK_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_OK_PCNT"), 99.0) / 100.0
-let THRESHOLD_TIME_CONNECT = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_CONNECT"), 200)
+let THRESHOLD_FAIL_PCNT_1H = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_1H"), 1.0) / 100.0
+let THRESHOLD_403_PCNT_1H = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_PCNT_1H"), 1.0) / 100.0
+let THRESHOLD_FAIL_PCNT_1D = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_1D"), 1.0) / 100.0
+let THRESHOLD_403_PCNT_1D = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_PCNT_1D"), 1.0) / 100.0
+let THRESHOLD_FAIL_PCNT_7D = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_7D"), 1.0) / 100.0
+let THRESHOLD_403_PCNT_7D = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_PCNT_7D"), 1.0) / 100.0
+let THRESHOLD_FAIL_PCNT_30D = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_30D"), 1.0) / 100.0
+let THRESHOLD_403_PCNT_30D = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_PCNT_30D"), 1.0) / 100.0
+let THRESHOLD_FAIL_PCNT_90D = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_90D"), 1.0) / 100.0
+let THRESHOLD_403_PCNT_90D = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_PCNT_90D"), 1.0) / 100.0
+let THRESHOLD_FAIL_PCNT_365D = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_365D"), 1.0) / 100.0
+let THRESHOLD_403_PCNT_365D = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_PCNT_365D"), 1.0) / 100.0
 
 // /metrics/find
 let FIND = getenv.getString(extractEnvParams(K6_CARBONAPI_PARAMS, "FIND"), "find.txt");
@@ -68,18 +78,24 @@ if (FIND_FORMAT == 'carbonapi_v3_pb') {
 }
 let THRESHOLD_TIME_FIND = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_FIND"), 3000);
 let USERS_FIND = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_FIND"), 0);
-let THRESHOLD_OK_FIND_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_OK_FIND_PCNT"), 99.0) / 100.0
+let THRESHOLD_FAIL_PCNT_FIND = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_FIND"), 1.0) / 100.0
+let THRESHOLD_403_FIND_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_FIND_PCNT"), 1.0) / 100.0
 
 // /tags/autoComplete
 let TAGS = getenv.getEnv(extractEnvParams(K6_CARBONAPI_PARAMS, "TAGS"), "tags.txt");
 let F_API_TAGS = 'api_tags_get'
 let THRESHOLD_TIME_TAGS = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_TAGS"), 3000);
 let USERS_TAGS = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_TAGS"), 0);
-let THRESHOLD_OK_TAGS_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_OK_TAGS_PCNT"), 99.0) / 100.0
+let THRESHOLD_FAIL_PCNT_TAGS = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_TAGS"), 1.0) / 100.0
+let THRESHOLD_403_TAGS_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_TAGS_PCNT"), 1.0) / 100.0
+
+let THRESHOLD_TIME_CONNECT = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_CONNECT"), 200)
+let THRESHOLD_ERROR_PCNT_NON_HTTP  = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_ERROR_PCNT_NON_HTTP "), 1.0) / 100.0
 
 // additional metrics
 let httpSendBytesTrend = Trend("http_req_send_bytes");
 let httpRecvBytesTrend = Trend("http_req_recv_bytes");
+let httpReqNonHttpError = Rate("http_req_error_non_http");
 
 let scenarios = {};
 
@@ -213,9 +229,16 @@ if (USERS_365D_0 > 0) {
 
 export const options = {
     thresholds: {
-        'checks{label:find}': [
+        'checks{status:fail, label:find}': [
             {
-                threshold: `rate>${THRESHOLD_OK_FIND_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_FIND}`, // http success should be greater or equal than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'checks{status:forbidden, label:find}': [
+            {
+                threshold: `rate<${THRESHOLD_403_FIND_PCNT}`, // http 403 errors should be less than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -227,9 +250,16 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'checks{label:tags}': [
+        'checks{status:fail, label:tags}': [
             {
-                threshold: `rate>${THRESHOLD_OK_TAGS_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_TAGS}`, // http success should be greater or equal than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'checks{status:forbidden, label:tags}': [
+            {
+                threshold: `rate<${THRESHOLD_403_TAGS_PCNT}`, // http 403 errors should be less than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -241,9 +271,16 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'checks{label:render_1h_offset_0}': [
+        'checks{status:fail, label:render_1h_offset_0}': [
             {
-                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_1H}`, // http success should be greater or equal than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'checks{status:forbidden, label:render_1h_offset_0}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_1D}`, // http 403 errors should be less than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -255,13 +292,20 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'checks{label:render_1h_offset_7d}': [
+        'checks{status:fail, label:render_1h_offset_7d}': [
             {
-                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_1H}`, // http success should be greater or equal than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
+        'checks{status:forbidden, label:render_1h_offset_7d}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_1H}`, // http 403 errors should be less than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],        
         'http_req_duration{label:render_1h_offset_7d}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_1H}`, // 95% of requests should be below THRESHOLD_TIME_1H ms
@@ -269,13 +313,20 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'checks{label:render_1d_offset_0}': [
+        'checks{status:fail, label:render_1d_offset_0}': [
             {
-                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_1D}`, // http success should be greater or equal than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
+        'checks{status:forbidden, label:render_1d_offset_0}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_1D}`, // http 403 errors should be less than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],        
         'http_req_duration{label:render_1d_offset_0}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_1D}`, // 95% of requests should be below THRESHOLD_TIME_1D ms
@@ -283,13 +334,20 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'checks{label:render_1d_offset_7d}': [
+        'checks{status:fail, label:render_1d_offset_7d}': [
             {
-                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_1D}`, // http success should be greater or equal than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
+        'checks{status:forbidden, label:render_1d_offset_7d}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_1D}`, // http 403 errors should be less than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],        
         'http_req_duration{label:render_1d_offset_7d}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_1D}`, // 95% of requests should be below THRESHOLD_TIME_1D ms
@@ -297,13 +355,20 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'checks{label:render_7d_offset_0}': [
+        'checks{status:fail, label:render_7d_offset_0}': [
             {
-                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_7D}`, // http success should be greater or equal than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
+        'checks{status:forbidden, label:render_7d_offset_7d}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_7D}`, // http 403 errors should be less than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ], 
         'http_req_duration{label:render_7d_offset_0}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_7D}`, // 95% of requests should be below THRESHOLD_TIME_1D ms
@@ -311,13 +376,20 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'checks{label:render_7d_offset_7d}': [
+        'checks{status:fail, label:render_7d_offset_7d}': [
             {
-                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_7D}`, // http success should be greater or equal than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
+        'checks{status:forbidden, label:render_7d_offset_7d}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_7D}`, // http 403 errors should be less than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ], 
         'http_req_duration{label:render_7d_offset_7d}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_7D}`, // 95% of requests should be below THRESHOLD_TIME_7D ms
@@ -325,13 +397,20 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'checks{label:render_30d_offset_0}': [
+        'checks{status:fail, label:render_30d_offset_0}': [
             {
-                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_30D}`, // http success should be greater or equal than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
+        'checks{status:forbidden, label:render_30d_offset_0}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_30D}`, // http 403 errors should be less than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ], 
         'http_req_duration{label:render_30d_offset_0}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_30D}`, // 95% of requests should be below THRESHOLD_TIME_30D ms
@@ -339,13 +418,20 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'checks{label:render_90d_offset_0}': [
+        'checks{status:fail, label:render_90d_offset_0}': [
             {
-                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_90D}`, // http success should be greater or equal than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
         ],
+        'checks{status:forbidden, label:render_90d_offset_0}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_90D}`, // http 403 errors should be less than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],        
         'http_req_duration{label:render_90d_offset_0}': [
             {
                 threshold: `p(95)<${THRESHOLD_TIME_90D}`, // 95% of requests should be below THRESHOLD_TIME_90D ms
@@ -353,9 +439,16 @@ export const options = {
                 delayAbortEval: '30s',
             },
         ],
-        'checks{label:render_365d_offset_0}': [
+        'checks{status:fail, label:render_365d_offset_0}': [
             {
-                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
+                threshold: `rate<${THRESHOLD_FAIL_PCNT_365D}`, // http success should be greater or equal than
+                abortOnFail: true,
+                delayAbortEval: '30s',
+            },
+        ],
+        'checks{status:forbidden, label:render_365d_offset_0}': [
+            {
+                threshold: `rate<${THRESHOLD_403_PCNT_365D}`, // http 403 errors should be less than
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -375,18 +468,129 @@ export const options = {
             },
         ],
         // workaround for output status codes
-        'http_req_duration{status:200}': ['max>=0'],
-        'http_req_duration{status:400}': ['max>=0'],
-        'http_req_duration{status:401}': ['max>=0'],
-        'http_req_duration{status:403}': ['max>=0'],
-        'http_req_duration{status:404}': ['max>=0'],
-        'http_req_duration{status:429}': ['max>=0'],
-        'http_req_duration{status:499}': ['max>=0'], // timeout
-        'http_req_duration{status:500}': ['max>=0'],
-        'http_req_duration{status:501}': ['max>=0'],
-        'http_req_duration{status:502}': ['max>=0'],
-        'http_req_duration{status:503}': ['max>=0'],
-        'http_req_duration{status:504}': ['max>=0'],
+        'http_req_duration{label:find, status:200}': ['max>=0'],
+        'http_req_duration{label:find, status:400}': ['max>=0'],
+        'http_req_duration{label:find, status:401}': ['max>=0'],
+        'http_req_duration{label:find, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:find, status:404}': ['max>=0'],        
+        'http_req_duration{label:find, status:500}': ['max>=0'],        
+        'http_req_duration{label:find, status:501}': ['max>=0'],
+        'http_req_duration{label:find, status:502}': ['max>=0'],
+        'http_req_duration{label:find, status:503}': ['max>=0'],
+        'http_req_duration{label:find, status:504}': ['max>=0'],
+      
+        'http_req_duration{label:tags, status:200}': ['max>=0'],
+        'http_req_duration{label:tags, status:400}': ['max>=0'],
+        'http_req_duration{label:tags, status:401}': ['max>=0'],
+        'http_req_duration{label:tags, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:tags, status:404}': ['max>=0'],
+        'http_req_duration{label:tags, status:500}': ['max>=0'],
+        'http_req_duration{label:tags, status:501}': ['max>=0'],
+        'http_req_duration{label:tags, status:502}': ['max>=0'],
+        'http_req_duration{label:tags, status:503}': ['max>=0'],
+        'http_req_duration{label:tags, status:504}': ['max>=0'],
+
+        'http_req_duration{label:render_1h_offset_0, status:200}': ['max>=0'],                
+        'http_req_duration{label:render_1h_offset_0, status:400}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_0, status:401}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_0, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_0, status:404}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_0, status:500}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_0, status:501}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_0, status:502}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_0, status:503}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_0, status:504}': ['max>=0'],
+
+        'http_req_duration{label:render_1h_offset_7d, status:200}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_7d, status:400}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_7d, status:401}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_7d, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_7d, status:404}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_7d, status:500}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_7d, status:501}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_7d, status:502}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_7d, status:503}': ['max>=0'],
+        'http_req_duration{label:render_1h_offset_7d, status:504}': ['max>=0'],
+
+        'http_req_duration{label:render_1d_offset_0, status:200}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_0, status:400}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_0, status:401}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_0, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_0, status:404}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_0, status:500}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_0, status:501}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_0, status:502}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_0, status:503}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_0, status:504}': ['max>=0'],
+
+        'http_req_duration{label:render_1d_offset_7d, status:200}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_7d, status:400}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_7d, status:401}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_7d, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_7d, status:404}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_7d, status:500}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_7d, status:501}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_7d, status:502}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_7d, status:503}': ['max>=0'],
+        'http_req_duration{label:render_1d_offset_7d, status:504}': ['max>=0'],
+
+        'http_req_duration{label:render_7d_offset_0, status:200}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_0, status:400}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_0, status:401}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_0, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_0, status:404}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_0, status:500}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_0, status:501}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_0, status:502}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_0, status:503}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_0, status:504}': ['max>=0'],
+
+        'http_req_duration{label:render_7d_offset_7d, status:200}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_7d, status:400}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_7d, status:401}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_7d, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_7d, status:404}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_7d, status:500}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_7d, status:501}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_7d, status:502}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_7d, status:503}': ['max>=0'],
+        'http_req_duration{label:render_7d_offset_7d, status:504}': ['max>=0'],
+
+        'http_req_duration{label:render_30d_offset_0, status:200}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_0, status:400}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_0, status:401}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_0, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_0, status:404}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_0, status:500}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_0, status:501}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_0, status:502}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_0, status:503}': ['max>=0'],
+        'http_req_duration{label:render_30d_offset_0, status:504}': ['max>=0'],
+
+        'http_req_duration{label:render_90d_offset_0, status:200}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_0, status:400}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_0, status:401}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_0, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_0, status:404}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_0, status:500}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_0, status:501}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_0, status:502}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_0, status:503}': ['max>=0'],
+        'http_req_duration{label:render_90d_offset_0, status:504}': ['max>=0'],
+
+        'http_req_duration{label:render_365d_offset_0, status:200}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_0, status:400}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_0, status:401}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_0, status:forbidden}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_0, status:404}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_0, status:500}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_0, status:501}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_0, status:502}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_0, status:503}': ['max>=0'],
+        'http_req_duration{label:render_365d_offset_0, status:504}': ['max>=0'],
+        
+        // 'http_req_duration{status:429, label:find}': ['max>=0'],
+        // 'http_req_duration{status:499, label:find}': ['max>=0'], // timeout
     },
     scenarios: scenarios,
     summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(95)', 'p(99)', 'p(99.9)', 'count'],
@@ -404,7 +608,10 @@ export function setup() {
         fail('unknown parameters: ' + dumpMap(K6_CARBONAPI_PARAMS));
     }
 
-    console.log('started with delay ' + DELAY[0] + ':' + DELAY[1] + " ms, thresholds success find " + THRESHOLD_OK_FIND_PCNT + ", tags " + THRESHOLD_OK_TAGS_PCNT+ ", render " + THRESHOLD_OK_PCNT);
+    console.log('started with delay ' + DELAY[0] + ':' + DELAY[1] + " ms")
+    console.log("thresholds success find " + THRESHOLD_FAIL_PCNT_FIND + ", tags " + THRESHOLD_FAIL_PCNT_TAGS + ", render 1h " + THRESHOLD_FAIL_PCNT_1H + ", 1d " + THRESHOLD_FAIL_PCNT_1D + ", 7d " + THRESHOLD_FAIL_PCNT_7D + ", 30d " + THRESHOLD_FAIL_PCNT_30D + ", 90d " + THRESHOLD_FAIL_PCNT_90D + ", 365d " + THRESHOLD_FAIL_PCNT_365D);
+    console.log("thresholds 403 find " + THRESHOLD_403_FIND_PCNT + ", tags " + THRESHOLD_403_TAGS_PCNT + ", render 1h " + THRESHOLD_403_PCNT_1H + ", 1d " + THRESHOLD_403_PCNT_1D + ", 7d " + THRESHOLD_403_PCNT_7D + ", 30d " + THRESHOLD_403_PCNT_30D + ", 90d " + THRESHOLD_403_PCNT_90D + ", 365d " + THRESHOLD_403_PCNT_365D);    
+    console.log("thresholds p95 ms find " + THRESHOLD_TIME_FIND + ", tags " + THRESHOLD_TIME_TAGS + ", render 1h " + THRESHOLD_TIME_1H + ", 1d " + THRESHOLD_TIME_1D + ", 7d " + THRESHOLD_TIME_7D + ", 30d " + THRESHOLD_TIME_30D + ", 90d " + THRESHOLD_TIME_90D + ", 365d " + THRESHOLD_TIME_365D);
     console.log('render format: ' + RENDER_FORMAT + '(' + RENDER + '), find format: ' + FIND_FORMAT  + '(' + FIND + '), tags (' + TAGS + ')');
     carbonapi.loadQueries(RENDER, FIND, TAGS, ADDR);
     let sizes = carbonapi.sizeQueries();
@@ -434,12 +641,17 @@ export function api_render_get() {
         headers: headers,
         tags: { name: url[1], label: group },
     });
+    let fail = check(resp, {
+        'fail': (r) => { return !(r.status == 200 || r.status == 400 || r.status == 403 || r.status == 404) },
+    }, { status: 'fail', label: group });
     check(resp, {
-        'success': (r) => { return r.status == 200 || r.status == 400 || r.status == 404 },
-    }, { label: group });
+        'forbidden': (r) => { return r.status == 403 },
+    }, { status: 'forbidden', label: group });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
+    } else if (fail && (resp.error_code < 1400 || resp.error_code > 1599)) {
+        httpReqNonHttpError.add(1)
     }
 }
 
@@ -458,11 +670,16 @@ export function api_render_pb_v3() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => { return r.status == 200 || r.status == 400 || r.status == 404 },
-    }, { label: group });
+        'fail': (r) => { return !(r.status == 200 || r.status == 400 || r.status == 403 || r.status == 404) },
+    }, { status: 'fail', label: group });
+    check(resp, {
+        'forbidden': (r) => { return r.status == 403 },
+    }, { status: 403, label: group });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
+    } else if (fail && (resp.error_code < 1400 || resp.error_code > 1599)) {
+        httpReqNonHttpError.add(1)        
     }
 }
 
@@ -481,11 +698,16 @@ export function api_find_get() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => { return r.status == 200 || r.status == 400 || r.status == 404 },
-    }, { label: group });
+        'fail': (r) => { return !(r.status == 200 || r.status == 400 || r.status == 403 || r.status == 404) },
+    }, { status: 'fail', label: group });
+    check(resp, {
+        'forbidden': (r) => { return r.status == 403 },
+    }, { status: 403, label: group });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
+    } else if (fail && (resp.error_code < 1400 || resp.error_code > 1599)) {
+        httpReqNonHttpError.add(1)        
     }
 }
 
@@ -504,11 +726,16 @@ export function api_find_pb_v3() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => { return r.status == 200 || r.status == 400 || r.status == 404 },
-    }, { label: group });
+        'fail': (r) => { return !(r.status == 200 || r.status == 400 || r.status == 403 || r.status == 404) },
+    }, { status: 'fail', label: group });
+    check(resp, {
+        'forbidden': (r) => { return r.status == 403 },
+    }, { status: 403, label: group });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
+    } else if (fail && (resp.error_code < 1400 || resp.error_code > 1599)) {
+        httpReqNonHttpError.add(1)        
     }
 }
 
@@ -527,11 +754,16 @@ export function api_tags_get() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => { return r.status == 200 || r.status == 400 || r.status == 404 },
-    }, { label: group });
+        'fail': (r) => { return !(r.status == 200 || r.status == 400 || r.status == 403 || r.status == 404) },
+    }, { status: 'fail', label: group });
+    check(resp, {
+        'forbidden': (r) => { return r.status == 403 },
+    }, { status: 403, label: group });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
+    } else if (fail && (resp.error_code < 1400 || resp.error_code > 1599)) {
+        httpReqNonHttpError.add(1)        
     }
 }
 
