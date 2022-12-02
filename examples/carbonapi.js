@@ -56,7 +56,7 @@ let USERS_90D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_90D
 let THRESHOLD_TIME_365D = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_365D"), 20000)
 let USERS_365D_0 = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_365D_0"), 0);
 
-let THRESHOLD_FAIL_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT"), 0.1) / 100.0
+let THRESHOLD_OK_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_OK_PCNT"), 99.0) / 100.0
 let THRESHOLD_TIME_CONNECT = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_CONNECT"), 200)
 
 // /metrics/find
@@ -68,14 +68,14 @@ if (FIND_FORMAT == 'carbonapi_v3_pb') {
 }
 let THRESHOLD_TIME_FIND = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_FIND"), 3000);
 let USERS_FIND = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_FIND"), 0);
-let THRESHOLD_FAIL_FIND_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_FIND_PCNT"), 0.1) / 100.0
+let THRESHOLD_OK_FIND_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_OK_FIND_PCNT"), 99.0) / 100.0
 
 // /tags/autoComplete
 let TAGS = getenv.getEnv(extractEnvParams(K6_CARBONAPI_PARAMS, "TAGS"), "tags.txt");
 let F_API_TAGS = 'api_tags_get'
 let THRESHOLD_TIME_TAGS = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_TAGS"), 3000);
 let USERS_TAGS = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_TAGS"), 0);
-let THRESHOLD_FAIL_TAGS_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_TAGS_PCNT"), 0.1) / 100.0
+let THRESHOLD_OK_TAGS_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_OK_TAGS_PCNT"), 99.0) / 100.0
 
 // additional metrics
 let httpSendBytesTrend = Trend("http_req_send_bytes");
@@ -215,7 +215,7 @@ export const options = {
     thresholds: {
         'checks{label:find}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_FIND_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_FIND_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -229,7 +229,7 @@ export const options = {
         ],
         'checks{label:tags}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_TAGS_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_TAGS_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -243,7 +243,7 @@ export const options = {
         ],
         'checks{label:render_1h_offset_0}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -257,7 +257,7 @@ export const options = {
         ],
         'checks{label:render_1h_offset_7d}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -271,7 +271,7 @@ export const options = {
         ],
         'checks{label:render_1d_offset_0}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -285,7 +285,7 @@ export const options = {
         ],
         'checks{label:render_1d_offset_7d}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -299,7 +299,7 @@ export const options = {
         ],
         'checks{label:render_7d_offset_0}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -313,7 +313,7 @@ export const options = {
         ],
         'checks{label:render_7d_offset_7d}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -327,7 +327,7 @@ export const options = {
         ],
         'checks{label:render_30d_offset_0}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -341,7 +341,7 @@ export const options = {
         ],
         'checks{label:render_90d_offset_0}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -355,7 +355,7 @@ export const options = {
         ],
         'checks{label:render_365d_offset_0}': [
             {
-                threshold: `rate<${THRESHOLD_FAIL_PCNT}`, // http errors should be less than 0.1%
+                threshold: `rate>${THRESHOLD_OK_PCNT}`, // http errors should be less than 1%
                 abortOnFail: true,
                 delayAbortEval: '30s',
             },
@@ -404,9 +404,11 @@ export function setup() {
         fail('unknown parameters: ' + dumpMap(K6_CARBONAPI_PARAMS));
     }
 
-    console.log('started with delay ' + DELAY[0] + ':' + DELAY[1] + " ms");
+    console.log('started with delay ' + DELAY[0] + ':' + DELAY[1] + " ms, thresholds success find " + THRESHOLD_OK_FIND_PCNT + ", tags " + THRESHOLD_OK_TAGS_PCNT+ ", render " + THRESHOLD_OK_PCNT);
     console.log('render format: ' + RENDER_FORMAT + '(' + RENDER + '), find format: ' + FIND_FORMAT  + '(' + FIND + '), tags (' + TAGS + ')');
     carbonapi.loadQueries(RENDER, FIND, TAGS, ADDR);
+    let sizes = carbonapi.sizeQueries();
+    console.log('load render targets ' + sizes[0] + ', find queries ' + sizes[1] + ', tags queries ' + sizes[2]);
     carbonapi.renderAddIntervalGroup('render_1h_offset_0', 3600, 0);
     carbonapi.renderAddIntervalGroup('render_1h_offset_7d', 3600, 3600 * 24 * 7);
     carbonapi.renderAddIntervalGroup('render_1d_offset_0', 3600 * 24, 0);
@@ -432,10 +434,9 @@ export function api_render_get() {
         headers: headers,
         tags: { name: url[1], label: group },
     });
-    // console.log("api_render_get: " + resp.status +  " k6 Error : " + resp.error  + " k6 Error code: " + resp.error_code + "after a duration of: " + resp.timings.duration + "made up of: Blocked " + resp.timings.blocked +  " Connecting " + resp.timings.connecting + " Sending " + resp.timings.sending + " Waiting: " + resp.timings.waiting + " Receiving: " + resp.timings.receiving);
     check(resp, {
-        'success': (r) => r.status === 200 || r.status === 400 || r.status === 404,
-    });
+        'success': (r) => { return r.status == 200 || r.status == 400 || r.status == 404 },
+    }, { label: group });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
@@ -456,23 +457,9 @@ export function api_render_pb_v3() {
         headers: headers,
         tags: { name: url[1], label: group },
     });
-    // console.log("api_render_pb_v3: " + resp.status +  " k6 Error : " + resp.error  + " k6 Error code: " + resp.error_code + " after a duration of: " + resp.timings.duration + "made up of: Blocked " + resp.timings.blocked +  " Connecting " + resp.timings.connecting + " Sending " + resp.timings.sending + " Waiting: " + resp.timings.waiting + " Receiving: " + resp.timings.receiving);
     check(resp, {
-        'success': (r) => r.status === 200 || r.status === 400 || r.status === 404,
-    });
-    // if (
-    //     !check(resp, {
-    //         'success': (r) => { 
-    //             if (r.status == 200 || r.status == 400 || r.status == 404) { 
-    //                 return true
-    //             } else {
-    //                 return false                    
-    //             }
-    //         },
-    //     })
-    // ) {
-    //     fail('success');
-    // }
+        'success': (r) => { return r.status == 200 || r.status == 400 || r.status == 404 },
+    }, { label: group });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
@@ -485,7 +472,7 @@ export function api_find_get() {
     }
 
     let group = __ENV.GROUP
-    let url = carbonapi.findNextGet(group, RENDER_FORMAT, 0)
+    let url = carbonapi.findNextGet(group, FIND_FORMAT, 0)
 
     // console.log("GROUP="+group, "VU="+__VU, "ITER="+__ITER, "URL="+url[0])
 
@@ -494,8 +481,8 @@ export function api_find_get() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => r.status === 200 || r.status === 400 || r.status === 404,
-    });
+        'success': (r) => { return r.status == 200 || r.status == 400 || r.status == 404 },
+    }, { label: group });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
@@ -508,17 +495,17 @@ export function api_find_pb_v3() {
     }
 
     let group = __ENV.GROUP
-    let url = carbonapi.findNextPb_v3(group, RENDER_FORMAT, 0)
+    let url = carbonapi.findNextPb_v3(group, FIND_FORMAT, 0)
 
-    // console.log("GROUP="+group, "VU="+__VU, "ITER="+__ITER, "URL="+url[0])
+    // console.log("GROUP="+group, "VU="+__VU, "ITER="+__ITER, "URL="+url[0], url[1], "pb_v3=" + carbonapi.decodeFindReqPb_v3(url[2]))
 
-    let resp = http.get(url[0], url[2], {
+    let resp = http.post(url[0], url[2], {
         headers: headers,
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => r.status === 200|| r.status === 400 || r.status === 404,
-    });
+        'success': (r) => { return r.status == 200 || r.status == 400 || r.status == 404 },
+    }, { label: group });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
@@ -540,23 +527,8 @@ export function api_tags_get() {
         tags: { name: url[1], label: group },
     });
     check(resp, {
-        'success': (r) => r.status === 200 || r.status === 400 || r.status === 404,
-    });
-    // if (
-    //     !check(resp, {
-    //         'success': (r) => { 
-    //             if (r.status != 200 && r.status != 400 && r.status != 404) { 
-    //                 console.log("api_tags_get: " + r.status +  " k6 Error : " + r.error  + " k6 Error code: " + r.error_code + "after a duration of: " + r.timings.duration + "made up of: Blocked " + r.timings.blocked +  " Connecting " + r.timings.connecting + " Sending " + r.timings.sending + " Waiting: " + r.timings.waiting + " Receiving: " + r.timings.receiving);
-    //                 return false
-    //             } else {
-    //                 return true
-    //             }
-    //         },
-    //     })
-    // ) {
-    //     fail('success');
-    // }
- 
+        'success': (r) => { return r.status == 200 || r.status == 400 || r.status == 404 },
+    }, { label: group });
     if (resp.status == 200 || resp.status == 404) {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })

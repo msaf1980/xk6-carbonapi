@@ -2,8 +2,8 @@ import { sleep } from "k6";
 import carbonapi from "k6/x/carbonapi";
 
 export let options = {
-    vus: 6,
-    iterations: 24,
+    vus: 2,
+    iterations: 2,
 }
 
 export function setup() {

@@ -33,6 +33,7 @@ func (c *Carbonapi) Exports() modules.Exports {
 	return modules.Exports{
 		Named: map[string]interface{}{
 			"loadQueries":            c.LoadQueries,
+			"sizeQueries":            c.SizeQueries,
 			"renderAddIntervalGroup": c.RenderAddIntervalGroup,
 			"renderNextGet":          c.RenderNextGet,
 			"renderNextPb_v3":        c.RenderNextPb_v3,
@@ -63,6 +64,10 @@ func (c *Carbonapi) LoadQueries(targetPath, findPath, tagsPath, baseURL string) 
 	}
 
 	return loadErr
+}
+
+func (c *Carbonapi) SizeQueries() (int, int, int) {
+	return len(q.render_targets), len(q.find_queries), len(q.tags_queries)
 }
 
 // ResetQueries load render queries from file
@@ -222,7 +227,7 @@ func (c *Carbonapi) FindNextGet(group, format string, offset int64) (url string,
 	var sb stringutils.Builder
 	sb.Grow(512)
 	sb.WriteString(q.baseURL)
-	sb.WriteString("/metrics/find?format=")
+	sb.WriteString("/metrics/find/?format=")
 	sb.WriteString(format)
 	for _, query := range queries {
 		sb.WriteString("&query=")
@@ -255,7 +260,7 @@ func (c *Carbonapi) FindNextPb_v3(group, format string, offset int64) (url strin
 	var sb stringutils.Builder
 	sb.Grow(512)
 	sb.WriteString(q.baseURL)
-	sb.WriteString("/metrics/find?format=")
+	sb.WriteString("/metrics/find/?format=")
 	sb.WriteString(format)
 
 	url = sb.String()

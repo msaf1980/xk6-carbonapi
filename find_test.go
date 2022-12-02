@@ -32,15 +32,15 @@ func TestRender_FindNextGetJSON(t *testing.T) {
 		wantName string
 	}{
 		{
-			wantURL:  baseURL + "/metrics/find?format=json&query=test1.%2A",
+			wantURL:  baseURL + "/metrics/find/?format=json&query=test1.%2A",
 			wantName: "metrics/find format=json query=test1.*",
 		},
 		{
-			wantURL:  baseURL + "/metrics/find?format=json&query=test2.%2A&query=test3.%2A.test4",
+			wantURL:  baseURL + "/metrics/find/?format=json&query=test2.%2A&query=test3.%2A.test4",
 			wantName: "metrics/find format=json query=test2.* query=test3.*.test4",
 		},
 		{
-			wantURL:  baseURL + "/metrics/find?format=json&query=test1.%2A",
+			wantURL:  baseURL + "/metrics/find/?format=json&query=test1.%2A",
 			wantName: "metrics/find format=json query=test1.*",
 		},
 	}
@@ -90,21 +90,21 @@ func TestRender_FindNext_pb_v3(t *testing.T) {
 		wantGlobReq pb_v3.MultiGlobRequest
 	}{
 		{
-			wantURL:  baseURL + "/metrics/find?format=carbonapi_v3_pb",
+			wantURL:  baseURL + "/metrics/find/?format=carbonapi_v3_pb",
 			wantName: "metrics/find format=carbonapi_v3_pb query=test1.*",
 			wantGlobReq: pb_v3.MultiGlobRequest{
 				Metrics: []string{"test1.*"},
 			},
 		},
 		{
-			wantURL:  baseURL + "/metrics/find?format=carbonapi_v3_pb",
+			wantURL:  baseURL + "/metrics/find/?format=carbonapi_v3_pb",
 			wantName: "metrics/find format=carbonapi_v3_pb query=test2.* query=test3.*.test4",
 			wantGlobReq: pb_v3.MultiGlobRequest{
 				Metrics: []string{"test2.*", "test3.*.test4"},
 			},
 		},
 		{
-			wantURL:  baseURL + "/metrics/find?format=carbonapi_v3_pb",
+			wantURL:  baseURL + "/metrics/find/?format=carbonapi_v3_pb",
 			wantName: "metrics/find format=carbonapi_v3_pb query=test1.*",
 			wantGlobReq: pb_v3.MultiGlobRequest{
 				Metrics: []string{"test1.*"},
