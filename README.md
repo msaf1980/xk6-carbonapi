@@ -91,7 +91,6 @@ THRESHOLD_403_PCNT_FIND       : 1 # 1% Failed requests maximum percent
 THRESHOLD_403_PCNT_TAGS       : 1 # 1% Failed requests maximum percent
 
 THRESHOLD_TIME_CONNECT        : 200 # 95% of requests connection time must be < THRESHOLD_TIME_CONNECT ms
-THRESHOLD_ERROR_PCNT_NON_HTTP:     : 1 # 1% Failed requests maximum percent
 
 RENDER               : "render.txt"           # Test render targets
 RENDER_FORMAT        : json                   # Render format: json, protobuf or carbonapi_pb_v2 (for graphite-clickhouse), carbonapi_pb_v3

@@ -90,7 +90,7 @@ let THRESHOLD_FAIL_PCNT_TAGS = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PAR
 let THRESHOLD_403_TAGS_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_TAGS_PCNT"), 1.0) / 100.0
 
 let THRESHOLD_TIME_CONNECT = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_CONNECT"), 200)
-let THRESHOLD_ERROR_PCNT_NON_HTTP  = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_ERROR_PCNT_NON_HTTP "), 1.0) / 100.0
+// let THRESHOLD_ERROR_PCNT_NON_HTTP  = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_ERROR_PCNT_NON_HTTP "), 1.0) / 100.0
 
 // additional metrics
 let httpSendBytesTrend = Trend("http_req_send_bytes");
