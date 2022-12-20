@@ -71,9 +71,9 @@ func TestRender_RenderNextGetJSON(t *testing.T) {
 				if gotURL != tt.wantURL {
 					t.Errorf("Carbonapi.RenderNextGet(\"%s\", \"json\").url got\n'%s'\nbut want\n'%s'", tt.name, gotURL, tt.wantURL)
 				}
-				wantName := tt.wantName + " label=" + tt.name
-				if gotName != wantName {
-					t.Errorf("Carbonapi.RenderNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", tt.name, gotName, wantName)
+				// wantName := tt.wantName + " label=" + tt.name
+				if gotName != tt.wantName {
+					t.Errorf("Carbonapi.RenderNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", tt.name, gotName, tt.wantName)
 				}
 			}
 		})
@@ -209,9 +209,9 @@ func TestRender_RenderNext_pb_v3(t *testing.T) {
 				if gotURL != tt.wantURL {
 					t.Errorf("Carbonapi.RenderNextPb_v3(\"%s\").url got\n'%s'\nbut want\n'%s'", tt.name, gotURL, tt.wantURL)
 				}
-				wantName := tt.wantName + " label=" + tt.name
-				if gotName != wantName {
-					t.Errorf("Carbonapi.RenderNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", tt.name, gotName, wantName)
+				// wantName := tt.wantName + " label=" + tt.name
+				if gotName != tt.wantName {
+					t.Errorf("Carbonapi.RenderNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", tt.name, gotName, tt.wantName)
 				}
 				if gotFetchReq, err := m.DecodeRenderReqPb_v3(reqBody); err == nil {
 					assert.Equal(t, tt.wantFetchReq, *gotFetchReq, "Carbonapi.RenderNextPb_v3(\"%s\").reqBody", tt.name)

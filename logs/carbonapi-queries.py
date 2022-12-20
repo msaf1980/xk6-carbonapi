@@ -70,14 +70,14 @@ from datetime import timedelta
 
 if sys.version_info >= (3, 3):
     import urllib.parse as urlparse
-    quote_plus = urlparse.quote_plus
+    quote = urlparse.quote
 
     def timestamp(dt):
         return dt.timestamp()
 else:
     import urlparse
     import urllib
-    quote_plus = urllib.quote_plus
+    quote = urlparse.quote
 
     def timestamp(dt):
         return time.mktime(dt.timetuple())
@@ -151,7 +151,7 @@ def parse_line(line, render_params, find_params=None, tags_params=None):
 
         try:
             for target in json_line['data']['targets']:
-                url = '&target=' + quote_plus(target)
+                url = '&target=' + quote(target)
 
                 if url not in render_params:
                     render_params.add(url)
@@ -164,7 +164,7 @@ def parse_line(line, render_params, find_params=None, tags_params=None):
 
         try:        
             for metric in json_line['data']['metrics']:
-                url = '&query=' + quote_plus(metric)
+                url = '&query=' + quote(metric)
 
                 if url not in find_params:
                     find_params.add(url)

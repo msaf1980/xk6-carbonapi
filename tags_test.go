@@ -60,9 +60,9 @@ func TestRender_TagsNextGet(t *testing.T) {
 				if gotURL != tt.wantURL {
 					t.Errorf("Carbonapi.TagsNextGet(\"%s\", \"json\").url got\n'%s'\nbut want\n'%s'", "tags", gotURL, tt.wantURL)
 				}
-				wantName := tt.wantName + " label=tags"
-				if gotName != wantName {
-					t.Errorf("Carbonapi.TagsNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", "tags", gotName, wantName)
+				// wantName := tt.wantName + " label=tags"
+				if gotName != tt.wantName {
+					t.Errorf("Carbonapi.TagsNextGet(\"%s\", \"json\").name got\n'%s'\nbut want\n'%s'", "tags", gotName, tt.wantName)
 				}
 			}
 		})

@@ -3,3 +3,4 @@ target
 &target=test.nginx.web%2A.url1_get.latencyTotal.p50
 &target=test.nginx.web1.url2_get.latencyTotal.p50&target=test.nginx.web2.url2_get.latencyTotal.p95
 target=test.nginx.web1.url3_get.latencyTotal.p50&target=test.nginx.web2.url3_get.latencyTotal.p99
+&target=seriesByTag%28%27environment%3Dcloud%27%2C%20%27replica%3D%2A%27%2C%20%27application%3Dweb%27%2C%20%27name%3Dlatency%27%29

@@ -112,10 +112,12 @@ export K6_STATSITE_ADDR='graphite-relay:8125' K6_STATSITE_NAMESPACE="Graphite.lo
 export K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label'
 export K6_OUT="statsite,clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
 
-export K6_CLICKHOUSE_TESTNAME="`rpm -q carbonapi`"
 export K6_CARBONAPI_PARAMS="DELAY=1 DURATION=1h USERS_FIND=1 USERS_TAGS=1 USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
-export K6_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
-export K6_CARBONAPI_PARAMS="FIND=find.txt TAGS=tags.txt ${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
+export K6_CARBONAPI_PARAMS="FIND=find.txt TAGS=tags.txt ${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 
+THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
+
+export K6_OUT_CLICKHOUSE_TESTNAME="`rpm -q carbonapi`"
+export K6_OUT_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
 
 ../k6 run carbonapi.js
 ```
@@ -129,10 +131,11 @@ export K6_STATSITE_BUFFER_SIZE=1000 K6_STATSITE_TAG_APPEND='label'
 export K6_OUT="statsite,clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_execution_time=60"
 
 export K6_CARBONAPI_ADDR="http://localhost:9090"
-export K6_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse`"
 export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb FIND_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_FIND=1 USERS_TAGS=1 USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
-export K6_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
 export K6_CARBONAPI_PARAMS="RENDER=render_gch.txt FIND=find.txt TAGS=tags.txt ${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
+
+export K6_OUT_CLICKHOUSE_TESTNAME="`rpm -q carbonapi`"
+export K6_OUT_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
 
 ../k6 run carbonapi.js
 ```
@@ -150,7 +153,7 @@ K6_OUT="clickhouse=http://k6:k6@localhost:8123/default?dial_timeout=200ms&max_ex
 
 For custom test name pass K6_CLICKHOUSE_TESTNAME env var, for example
 ```
-K6_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse`"
+K6_OUT_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse`"
 ```
 
 If run in one terminals with  non-default and default  parameters, don't forget unset env vars (or all and set it again), like
@@ -158,6 +161,6 @@ If run in one terminals with  non-default and default  parameters, don't forget 
 ```shell
 $
 unset K6_CARBONAPI_ADDR K6_CARBONAPI_PARAMS
-unset K6_CLICKHOUSE_TESTNAME K6_CLICKHOUSE_PARAMS
+unset K6_OUT_CLICKHOUSE_TESTNAME K6_OUT_CLICKHOUSE_PARAMS
 unset K6_STATSITE_ADDR K6_STATSITE_NAMESPACE K6_STATSITE_BUFFER_SIZE
 ```

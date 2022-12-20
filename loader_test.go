@@ -44,6 +44,9 @@ func TestModule_carbonapiQuery(t *testing.T) {
 			"test.nginx.web1.url3_get.latencyTotal.p50",
 			"test.nginx.web2.url3_get.latencyTotal.p99",
 		},
+		{
+			"seriesByTag('environment=cloud', 'replica=*', 'application=web', 'name=latency')",
+		},
 	}, q.render_targets)
 	// verify find queries
 	assert.Equal(t, [][]string{

@@ -14,14 +14,14 @@ from datetime import timedelta
 
 if sys.version_info >= (3, 3):
     import urllib.parse as urlparse
-    quote_plus = urlparse.quote_plus
+    quote = urlparse.quote
 
     def timestamp(dt):
         return dt.timestamp()
 else:
     import urlparse
     import urllib
-    quote_plus = urllib.quote_plus
+    quote = urllib.quote
 
     def timestamp(dt):
         return time.mktime(dt.timetuple())
@@ -108,7 +108,7 @@ def parse_line(line, render_params, render_cache):
             del render_cache[request_id]
 
             try:
-                url = '&target=' + quote_plus(target)
+                url = '&target=' + quote(target)
 
                 if url not in render_params:
                     render_params.add(url)

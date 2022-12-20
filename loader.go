@@ -87,7 +87,7 @@ func loadRenderTargets(targetPath string) error {
 			if strings.HasPrefix(field, "target=") {
 				target := field[7:]
 				if len(target) > 0 {
-					t, err := hurl.PathUnescape(target)
+					t, err := hurl.QueryUnescape(target)
 					if err != nil {
 						t = target
 					}
@@ -134,7 +134,7 @@ func loadFindTargets(findPath string) error {
 			if strings.HasPrefix(field, "query=") {
 				query := field[6:]
 				if len(query) > 0 {
-					q, err := hurl.PathUnescape(query)
+					q, err := hurl.QueryUnescape(query)
 					if err != nil {
 						q = query
 					}
@@ -183,7 +183,7 @@ func loadTagsTargets(tagsPath string) error {
 				if n != 2 {
 					return errors.New("cant extract tags param: " + v)
 				}
-				param, err := hurl.PathUnescape(p)
+				param, err := hurl.QueryUnescape(p)
 				if err != nil {
 					param = p
 				}

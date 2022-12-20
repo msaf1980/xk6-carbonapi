@@ -105,8 +105,8 @@ func renderName(group, format string, targets []string) string {
 		sb.WriteString(" target=")
 		sb.WriteString(target)
 	}
-	sb.WriteString(" label=")
-	sb.WriteString(group)
+	// sb.WriteString(" label=")
+	// sb.WriteString(group)
 
 	return sb.String()
 }
@@ -214,8 +214,8 @@ func findName(group, format string, queries []string) string {
 		sb.WriteString(" query=")
 		sb.WriteString(query)
 	}
-	sb.WriteString(" label=")
-	sb.WriteString(group)
+	// sb.WriteString(" label=")
+	// sb.WriteString(group)
 
 	return sb.String()
 }
@@ -293,8 +293,8 @@ func tagsName(group, format string, query tagsQuery) string {
 		sb.WriteString(param.value)
 		sb.WriteRune('\'')
 	}
-	sb.WriteString(" label=")
-	sb.WriteString(group)
+	// sb.WriteString(" label=")
+	// sb.WriteString(group)
 
 	return sb.String()
 }
