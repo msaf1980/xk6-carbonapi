@@ -72,7 +72,7 @@ def parse_line(line, render_params, render_cache):
         return
 
 
-    if json_line['logger'] == 'render.pb3parser':
+    if json_line['logger'] in ('render.pb3parser', 'render.json_target', 'render.target'):
         target = json_line.get('target')
         request_id = json_line.get('request_id')
         if target is None or request_id is None:
@@ -82,7 +82,10 @@ def parse_line(line, render_params, render_cache):
         json_line['time'] = int(timestamp(dt))
 
         # can't get status code at this step, so save in cache
-        render_cache[request_id] = target
+        if render_cache.get(request_id) is None:
+            render_cache[request_id] = [target]
+        else:
+            render_cache[request_id].append(target)
 
         # try:
         #     url = '&target=' + quote_plus(target)
@@ -100,15 +103,17 @@ def parse_line(line, render_params, render_cache):
             if json_line['status'] == '400':
                 return
             request_id = json_line.get('request_id')
-            target = None
+            targets = None
             if not request_id is None:
-                target = render_cache.get(request_id)
-            if target is None:
+                targets = render_cache.get(request_id)
+            if targets is None:
                 return
             del render_cache[request_id]
 
             try:
-                url = '&target=' + quote(target)
+                url = ""
+                for target in targets:
+                    url += '&target=' + quote(target)
 
                 if url not in render_params:
                     render_params.add(url)
