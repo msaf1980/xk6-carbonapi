@@ -122,7 +122,7 @@ export K6_OUT_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
 ../k6 run carbonapi.js
 ```
 
-For graphite-web testing (with render carbonapi_v3_pb format)
+For graphite-clickhouse testing (with render carbonapi_v3_pb format)
 
 ```shell
 $
@@ -134,7 +134,7 @@ export K6_CARBONAPI_ADDR="http://localhost:9090"
 export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb FIND_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_FIND=1 USERS_TAGS=1 USERS_1H_0=10 USERS_1D_0=1 USERS_7D_0=1 USERS_30D_0=1 USERS_90D_0=1 USERS_365D_0=1"
 export K6_CARBONAPI_PARAMS="RENDER=render_gch.txt FIND=find.txt TAGS=tags.txt ${K6_CARBONAPI_PARAMS} THRESHOLD_TIME_7D=15000 THRESHOLD_TIME_30D=30000 THRESHOLD_TIME_90D=40000 THRESHOLD_TIME_365D=50000"
 
-export K6_OUT_CLICKHOUSE_TESTNAME="`rpm -q carbonapi`"
+export K6_OUT_CLICKHOUSE_TESTNAME="`rpm -q graphite-clickhouse`"
 export K6_OUT_CLICKHOUSE_PARAMS="${K6_CARBONAPI_PARAMS}"
 
 ../k6 run carbonapi.js
