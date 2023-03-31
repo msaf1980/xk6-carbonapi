@@ -666,8 +666,8 @@ if (USERS_7D_0 > 0) {
     thresholds['http_req_duration{label:render_7d_offset_0, status:504}'] = ['max>=0']
 }
 
-if (USERS_7D_7D > 0) {    
-    // workaround for output status codes        
+if (USERS_7D_7D > 0) {
+    // workaround for output status codes
     // thresholds['http_req_duration{label:render_7d_offset_7d, status:200}'] = ['max>=0']
     thresholds['http_req_duration{label:render_7d_offset_7d, status:400}'] = ['max>=0']
     thresholds['http_req_duration{label:render_7d_offset_7d, status:401}'] = ['max>=0']
@@ -681,7 +681,7 @@ if (USERS_7D_7D > 0) {
 }
 
 if (USERS_30D_0 > 0) {
-    // workaround for output status codes  
+    // workaround for output status codes
     // thresholds['http_req_duration{label:render_30d_offset_0, status:200}'] = ['max>=0']
     thresholds['http_req_duration{label:render_30d_offset_0, status:400}'] = ['max>=0']
     thresholds['http_req_duration{label:render_30d_offset_0, status:401}'] = ['max>=0']
@@ -694,8 +694,8 @@ if (USERS_30D_0 > 0) {
     thresholds['http_req_duration{label:render_30d_offset_0, status:504}'] = ['max>=0'] 
 }
 
-if (USERS_30D_7D > 0) {    
-    // workaround for output status codes  
+if (USERS_30D_7D > 0) {
+    // workaround for output status codes
     // thresholds['http_req_duration{label:render_30d_offset_7d, status:200}'] = ['max>=0']
     thresholds['http_req_duration{label:render_30d_offset_7d, status:400}'] = ['max>=0']
     thresholds['http_req_duration{label:render_30d_offset_7d, status:401}'] = ['max>=0']
@@ -708,8 +708,8 @@ if (USERS_30D_7D > 0) {
     thresholds['http_req_duration{label:render_30d_offset_7d, status:504}'] = ['max>=0']       
 }
 
-if (USERS_90D_0 > 0) {    
-    // workaround for output status codes  
+if (USERS_90D_0 > 0) {
+    // workaround for output status codes
     // thresholds['http_req_duration{label:render_90d_offset_0, status:200}'] = ['max>=0']
     thresholds['http_req_duration{label:render_90d_offset_0, status:400}'] = ['max>=0']
     thresholds['http_req_duration{label:render_90d_offset_0, status:401}'] = ['max>=0']
@@ -771,7 +771,7 @@ export const options = {
     thresholds: thresholds,
     scenarios: scenarios,
     summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)', 'p(99)', 'count'],
-};    
+};
 
 export function setup() {
     if (USER.length > 0 && PASSWORD.length == 0) {
@@ -915,7 +915,7 @@ export function api_find_pb_v3() {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
     } else if (fail && (resp.error_code < 1400 || resp.error_code > 1599)) {
-        httpReqNonHttpError.add(1)        
+        httpReqNonHttpError.add(1)
     }
 }
 
@@ -943,7 +943,7 @@ export function api_tags_get() {
         httpSendBytesTrend.add(resp.request.body.length, { name: url[1], label: group })
         httpRecvBytesTrend.add(resp.body.length, { name: url[1], label: group })
     } else if (fail && (resp.error_code < 1400 || resp.error_code > 1599)) {
-        httpReqNonHttpError.add(1)        
+        httpReqNonHttpError.add(1)
     }
 }
 
