@@ -36,6 +36,8 @@ Then, install [xk6](https://github.com/grafana/xk6) and build your custom k6 bin
 
 Tune with env variables K6_STATSITE_ADDR, K6_CARBONAPI_PARAMS (conyains other variables, separated with spaces), CARBONAPI_USER,  CARBONAPI_PASSWORD
 ```
+
+export K6_CARBONAPI_ADDR="http://carbonapi.test.local"
 export K6_STATSITE_ADDR="http://127.0.0.1:8888"
 
 export K6_CARBONAPI_PARAMS="RENDER_FORMAT=carbonapi_v3_pb DELAY=1 DURATION=1h USERS_1H_0=10"
