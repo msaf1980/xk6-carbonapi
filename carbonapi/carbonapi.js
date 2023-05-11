@@ -82,7 +82,7 @@ if (FIND_FORMAT == 'carbonapi_v3_pb') {
 let THRESHOLD_TIME_FIND = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_FIND"), 3000);
 let USERS_FIND = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_FIND"), 0);
 let THRESHOLD_FAIL_PCNT_FIND = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_FIND"), 1.0) / 100.0
-let THRESHOLD_403_FIND_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_FIND_PCNT"), 1.0) / 100.0
+let THRESHOLD_403_FIND_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_PCNT_FIND"), 1.0) / 100.0
 
 // /tags/autoComplete
 let TAGS = getenv.getEnv(extractEnvParams(K6_CARBONAPI_PARAMS, "TAGS"), "tags.txt");
@@ -90,7 +90,7 @@ let F_API_TAGS = 'api_tags_get'
 let THRESHOLD_TIME_TAGS = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_TAGS"), 3000);
 let USERS_TAGS = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "USERS_TAGS"), 0);
 let THRESHOLD_FAIL_PCNT_TAGS = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_FAIL_PCNT_TAGS"), 1.0) / 100.0
-let THRESHOLD_403_TAGS_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_TAGS_PCNT"), 1.0) / 100.0
+let THRESHOLD_403_TAGS_PCNT = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_403_PCNT_TAGST"), 1.0) / 100.0
 
 let THRESHOLD_TIME_CONNECT = getenv.getInt(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_TIME_CONNECT"), 200)
 // let THRESHOLD_ERROR_PCNT_NON_HTTP  = getenv.getFloat(extractEnvParams(K6_CARBONAPI_PARAMS, "THRESHOLD_ERROR_PCNT_NON_HTTP "), 1.0) / 100.0
