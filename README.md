@@ -82,6 +82,9 @@ THRESHOLD_FAIL_PCNT_30D        : 1 # 1% Failed requests maximum percent
 THRESHOLD_FAIL_PCNT_90D        : 1 # 1% Failed requests maximum percent
 THRESHOLD_FAIL_PCNT_365D       : 1 # 1% Failed requests maximum percent
 
+THRESHOLD_FAIL_PCNT_FIND       : 1 # 1% Failed requests maximum percent
+THRESHOLD_FAIL_PCNT_TAGS       : 1 # 1% Failed requests maximum percent
+
 THRESHOLD_403_PCNT_FIND       : 1 # 1% Failed requests maximum percent
 THRESHOLD_403_PCNT_TAGS       : 1 # 1% Failed requests maximum percent
 
