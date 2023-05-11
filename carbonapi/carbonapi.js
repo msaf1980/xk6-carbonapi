@@ -787,7 +787,7 @@ export function setup() {
 
     console.log('started with delay ' + DELAY[0] + ':' + DELAY[1] + " ms")
     console.log("thresholds success find " + THRESHOLD_FAIL_PCNT_FIND + ", tags " + THRESHOLD_FAIL_PCNT_TAGS + ", render 1h " + THRESHOLD_FAIL_PCNT_1H + ", 1d " + THRESHOLD_FAIL_PCNT_1D + ", 7d " + THRESHOLD_FAIL_PCNT_7D + ", 30d " + THRESHOLD_FAIL_PCNT_30D + ", 90d " + THRESHOLD_FAIL_PCNT_90D + ", 365d " + THRESHOLD_FAIL_PCNT_365D);
-    console.log("thresholds 403 find " + THRESHOLD_403_FIND_PCNT + ", tags " + THRESHOLD_403_TAGS_PCNT + ", render 1h " + THRESHOLD_403_PCNT_1H + ", 1d " + THRESHOLD_403_PCNT_1D + ", 7d " + THRESHOLD_403_PCNT_7D + ", 30d " + THRESHOLD_403_PCNT_30D + ", 90d " + THRESHOLD_403_PCNT_90D + ", 365d " + THRESHOLD_403_PCNT_365D);    
+    console.log("thresholds 403 find " + THRESHOLD_403_PCNT_FIND + ", tags " + THRESHOLD_403_PCNT_TAGS + ", render 1h " + THRESHOLD_403_PCNT_1H + ", 1d " + THRESHOLD_403_PCNT_1D + ", 7d " + THRESHOLD_403_PCNT_7D + ", 30d " + THRESHOLD_403_PCNT_30D + ", 90d " + THRESHOLD_403_PCNT_90D + ", 365d " + THRESHOLD_403_PCNT_365D);    
     console.log("thresholds p95 ms find " + THRESHOLD_TIME_FIND + ", tags " + THRESHOLD_TIME_TAGS + ", render 1h " + THRESHOLD_TIME_1H + ", 1d " + THRESHOLD_TIME_1D + ", 7d " + THRESHOLD_TIME_7D + ", 30d " + THRESHOLD_TIME_30D + ", 90d " + THRESHOLD_TIME_90D + ", 365d " + THRESHOLD_TIME_365D);
     console.log('render format: ' + RENDER_FORMAT + '(' + RENDER + '), find format: ' + FIND_FORMAT  + '(' + FIND + '), tags (' + TAGS + ')');
     carbonapi.loadQueries(RENDER, FIND, TAGS, ADDR);
